@@ -1,5 +1,6 @@
 import json
 
+# loading json to maintain data structure.
 with open("tasks.txt", "r") as tasks_file:
     all_tasks = json.load(tasks_file)
 
@@ -16,7 +17,7 @@ day_filter = input(
 
 tasks_filterd = {}
 n = 1
-found = False
+found = False       # used to report if no tasks are found.
 
 print(f"\n{day_filter} Tasks:\n")
 for task_num, task_details in all_tasks.items():
@@ -24,7 +25,7 @@ for task_num, task_details in all_tasks.items():
         print(
             f"Task {n} => Task Name: {task_details['Task Name']} | Task Day: {task_details['Task Day']}")
         n += 1
-        found = True
+        found = True    # setting True means if loop below will not execute.
 
 if not found:
     print(f"No tasks found for {day_filter}")
