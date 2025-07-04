@@ -10,5 +10,29 @@
     "Task 3": {
         "Task Name": "Wednesday",
         "Task Day": "Whatevery"
+    },
+    "Task 4": {
+        "Task Name": "Learn Python",
+        "Task Day": "Tuesday"
+    },
+    "Task 5": {
+        "Task Name": "Drive To The Nandi Hills",
+        "Task Day": "Sunday"
+    },
+    "Task 6": {
+        "Task Name": "Call Shyam",
+        "Task Day": "Monday"
+    },
+    "Task 7": {
+        "Task Name": "Congratulate Shanu",
+        "Task Day": "Tuesday"
+    },
+    "Task 8": {
+        "Task Name": "Clean Room",
+        "Task Day": "Wednesday"
+    },
+    "Task 9": {
+        "Task Name": "Call Ac Tech",
+        "Task Day": "Monday"
     }
 }
