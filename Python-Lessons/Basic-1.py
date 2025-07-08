@@ -1,47 +1,30 @@
 class Book:
-    # __init__ always get executed whenever you instantiate this class (i.e. create an object).
-    # it is required to initialize your objects; it is called constructor.
-    #
-    # self refers to the object (instance).
-    # you need this because otherwise the class won't know which object you are referencing, e.g.:
-    # self.title for book_1 = book1.title
-    # self.title for book_2 = book2.title
-    # so when you are instantiating book_1:
-    #   book1.title = "Water magician"
-    #   book1.author = "hiro"
-    #   book1.year = 2007
-    def __init__(self, title, author, year):
+    def __init__(self, title, author, year, is_borrowed=False):
         self.title = title
         self.author = author
         self.year = year
-        # because __init__ always gets executed, below line always prints whenever an object is instantiated.
-        print(f"Working with a class {self.title} ; __init__ constructor")
+        self.is_borrowed = is_borrowed
 
-    # again self is needed to reference the correct object.
     def display_info(self):
-        # self.title here would mean:
-        #   book_1.title for book_1 object.
-        #   book_2.title for book_2 object.
-        # it changes dynamically depending on which object (i.e. self) is calling it.
-        print(f"Title: {self.title}, Author: {self.author}, Year: {self.year}")
+        print(
+            f"Title: {self.title}, Author: {self.author}, Year: {self.year}, Available: {not self.is_borrowed}")
 
-    # @@@---original method is wrote:
-    # def is_classic(self):
-    #     if self.year < 2010:
-    #         classic = True
-    #     else:
-    #         classic = False
-    #     print(f"{self.title} is classic: {classic}")
-    # @@@---improved method:
+    def borrow_book(self):
+        if self.is_borrowed:
+            print("Already borrowed")
+        else:
+            self.is_borrowed = True
+            print(f"Book {self.title} has been borrowed.")
 
-    def is_classic(self):
-        classic = self.year < 2010      # a simple boolean comparison :)
-        print(f"{self.title} is classic: {classic}")
+    def return_book(self):
+        if not self.is_borrowed:
+            print("Book was not borrowed")
+        else:
+            self.is_borrowed = False
+            print(f"Book {self.title} has been returned")
 
 
-book_1 = Book("Water magician", "hiro", 2007)
-book_2 = Book("Regressing mercenary", "wakaba", 2018)
-# book_1.display_info()
-# book_2.display_info()
-book_1.is_classic()
-book_2.is_classic()
+book1 = Book("Python Basics", "VG", 2020)
+book2 = Book("Advance OOP concepts", "Rahul S", 2018)
+book1.display_info()
+print(book1.title)
