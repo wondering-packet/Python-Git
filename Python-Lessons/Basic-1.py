@@ -1,30 +1,17 @@
-class Book:
-    def __init__(self, title, author, year, is_borrowed=False):
-        self.title = title
-        self.author = author
-        self.year = year
-        self.is_borrowed = is_borrowed
+fav_langs = ["python", "c++", "java"]
+my_dict = {
+    "name": "VG",
+    "age": 77,
+    "favourite language": "Python"
+}
+print(fav_langs[0])
+print(my_dict["name"])
 
-    def display_info(self):
-        print(
-            f"Title: {self.title}, Author: {self.author}, Year: {self.year}, Available: {not self.is_borrowed}")
+fav_langs.append("javascript")
+fav_langs.remove("c++")
 
-    def borrow_book(self):
-        if self.is_borrowed:
-            print("Already borrowed")
-        else:
-            self.is_borrowed = True
-            print(f"Book {self.title} has been borrowed.")
+my_dict["favourite language"] = "Rust"
+del my_dict["age"]
 
-    def return_book(self):
-        if not self.is_borrowed:
-            print("Book was not borrowed")
-        else:
-            self.is_borrowed = False
-            print(f"Book {self.title} has been returned")
-
-
-book1 = Book("Python Basics", "VG", 2020)
-book2 = Book("Advance OOP concepts", "Rahul S", 2018)
-book1.display_info()
-print(book1.title)
+print(fav_langs)
+print(my_dict)

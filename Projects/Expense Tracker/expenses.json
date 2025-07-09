@@ -1,0 +1,26 @@
+[
+    {
+        "description": "shoes",
+        "amount": 399
+    },
+    {
+        "description": "gloves",
+        "amount": 250
+    },
+    {
+        "description": "baseball bat",
+        "amount": 1750
+    },
+    {
+        "description": "groceries",
+        "amount": 447
+    },
+    {
+        "description": "cushions",
+        "amount": 400
+    },
+    {
+        "description": "water bill",
+        "amount": 2000
+    }
+]
