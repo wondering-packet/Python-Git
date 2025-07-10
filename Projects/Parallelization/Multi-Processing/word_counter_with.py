@@ -39,13 +39,14 @@ with ProcessPoolExecutor(max_workers=4) as executor:
                 break
             processing_start_time = time.perf_counter()
             # spinning up processes using executor.submit(function_name, argument_for_function).
-            # we are also appending this future (tast) into futures (tasks) list.
+            # we are also appending this future (task) into futures (all tasks) list.
             futures.append(executor.submit(word_counter, file_chunk))
             print(
                 f"Submit took: {time.perf_counter() - processing_start_time:.2f}s")
         # as_completed allows us to process output based on execution time.
-        # here, we are looping over futures based on execution time,
-        # then finally appending all future's result (which is the child counter in word_counter()) to the parent counter.
+        # here, we are looping over futures (tasks) based on execution time,
+        # then finally appending all future's (task) result (which is the child counter in word_counter())
+        # to the parent counter.
         for each_future in as_completed(futures):
             final_counter.update(each_future.result())
 end_time = time.perf_counter()
