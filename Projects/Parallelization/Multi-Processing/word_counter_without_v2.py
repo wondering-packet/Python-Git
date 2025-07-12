@@ -7,7 +7,7 @@ start_time = time.perf_counter()
 final_counter = Counter()
 CHUNK_SIZE = 100000
 
-# chunk_number is optional; just validating the chunks are increasing as expected.
+# chunk_tracker is optional; just validating the chunks are increasing as expected.
 
 
 def word_counter(each_chunk, chunk_tracker):

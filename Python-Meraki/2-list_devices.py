@@ -23,7 +23,7 @@ def main():
 
         # below, we are passing NETWORK_ID. this is a required argument for this API call.
         # you will have to figure out the required arguments for each API call.
-        # you can find the required arguement in below documentation:
+        # you can find them in below documentation:
         # https://developer.cisco.com/meraki/api-v1/
         # just expand the API tree from left & navigate to the API call.
         devices = dashboard.networks.getNetworkDevices(NETWORK_ID)
@@ -49,7 +49,7 @@ def main():
                 f"LAN IP: {info['lan_ip']} | Public IP: {info['public_ip']}"
             )
 
-        # Optional: save to devices.json
+        # save to devices.json using device_list object
         with open("Python-Meraki/data/devices.json", "w") as outfile:
             json.dump(device_list, outfile, indent=4)
         logging.info("Device list saved to devices.json.")
