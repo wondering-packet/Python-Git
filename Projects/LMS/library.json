@@ -1,0 +1,26 @@
+[
+    {
+        "title": "Python Basics",
+        "author": "VG",
+        "year": 2020,
+        "available": false
+    },
+    {
+        "title": "Advance OOP concepts",
+        "author": "Rahul S",
+        "year": 2018,
+        "available": true
+    },
+    {
+        "title": "Python OOP concepts",
+        "author": "RS Mehta",
+        "year": 2024,
+        "available": true
+    },
+    {
+        "title": "Maths Advanced",
+        "author": "HV S.",
+        "year": 2016,
+        "available": true
+    }
+]
