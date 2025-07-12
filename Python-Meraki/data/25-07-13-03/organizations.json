@@ -1,0 +1,28 @@
+[
+    {
+        "id": "669910444571365923",
+        "name": "Devnet eAGKnkdfwUrS",
+        "url": "https://n190.meraki.com/o/c1np8c-c/manage/organization/overview",
+        "samlConsumerUrl": "https://n190.meraki.com/saml/login/c1np8c-c/cL6H0akLUkqc",
+        "samlConsumerUrls": [
+            "https://n190.meraki.com/saml/login/c1np8c-c/cL6H0akLUkqc"
+        ],
+        "api": {
+            "enabled": true
+        },
+        "licensing": {
+            "model": "co-term"
+        },
+        "cloud": {
+            "region": {
+                "name": "North America",
+                "host": {
+                    "name": "United States"
+                }
+            }
+        },
+        "management": {
+            "details": []
+        }
+    }
+]
