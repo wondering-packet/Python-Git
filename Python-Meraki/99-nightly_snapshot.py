@@ -43,12 +43,14 @@ def snapshot():
             networks = dashboard.organizations.getOrganizationNetworks(
                 org_id)
             # print(f"#### {networks}")
+            # saving networks json.
             save_json(networks, f"networks_{org_id}.json")
 
             # --- devices ---
             for network in networks:
                 network_id = network["id"]
                 devices = dashboard.networks.getNetworkDevices(network_id)
+                # saving devices json.
                 save_json(devices, f"devices_{org_id}_{network_id}.json")
 
             # ---- ssids ---
@@ -56,6 +58,7 @@ def snapshot():
                 network_id = network["id"]
                 ssids = dashboard.wireless.getNetworkWirelessSsids(
                     network_id)
+                # saving ssids json.
                 save_json(ssids, f"ssids_{org_id}_{network_id}.json")
 
             # --- device ports ---
@@ -66,11 +69,12 @@ def snapshot():
                     device_id = each_device["serial"]
                     # using try & catch block because getDeviceSwtichPorts only works for switches.
                     # since we are looping over every type of device, we will get warnings.
-                    # so the except (pass) block is taking care of suppressing the warnings.
+                    # so the except block is taking care of suppressing the warnings more gracefully.
                     try:
                         ports = dashboard.switch.getDeviceSwitchPorts(
                             device_id)
                         save_json(
+                            # saving device ports json.
                             ports, f"ports_{org_id}_{network_id}_{device_id}.json")
                     except Exception as e:
                         logging.warning(f"{device_id} - skipping ports: {e}")
