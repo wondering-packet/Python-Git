@@ -23,6 +23,10 @@ my_dict = {
 }
 print(fav_langs[0])
 print(my_dict["name"])
+# alternative:
+# print(my_dict.get("name"))
+# get() gives you a way to set a default value as well (e.g. if key doesn't exsits then return "N/A" as the default value.)
+# print(my_dict.get("test", "N/A"))
 
 fav_langs.append("javascript")
 fav_langs.remove("c++")

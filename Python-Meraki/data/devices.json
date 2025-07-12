@@ -1,0 +1,34 @@
+[
+    {
+        "name": null,
+        "model": "MS250-24",
+        "mac": "4c:c8:a1:06:00:00",
+        "serial": "QBSB-MYVH-J9DE",
+        "lan_ip": null,
+        "public_ip": "N/A"
+    },
+    {
+        "name": null,
+        "model": "MR52",
+        "mac": "4c:c8:a1:0c:01:9e",
+        "serial": "QBSC-C83J-XEMY",
+        "lan_ip": null,
+        "public_ip": "N/A"
+    },
+    {
+        "name": null,
+        "model": "MX100",
+        "mac": "4c:c8:a1:02:00:07",
+        "serial": "QBSA-NDC8-D62C",
+        "lan_ip": "N/A",
+        "public_ip": null
+    },
+    {
+        "name": null,
+        "model": "MV12W",
+        "mac": "4c:c8:a1:0f:01:1f",
+        "serial": "QBSD-J9X3-LMGX",
+        "lan_ip": null,
+        "public_ip": "N/A"
+    }
+]
