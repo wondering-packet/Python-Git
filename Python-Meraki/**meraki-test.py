@@ -1,8 +1,8 @@
-import meraki
 import json
-import logging
-from datetime import datetime
 from pathlib import Path
+from datetime import datetime
+from deepdiff import DeepDiff
+import logging
 
 # --- Setup logging ---
 logging.basicConfig(
@@ -10,58 +10,50 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# --- Load API Key securely ---
-with open("../Secrets/keys.json", "r") as f:
-    secret = json.load(f)
-    API_KEY = secret["api_key"]
-
 # --- Paths ---
-today_str = datetime.now().strftime("%Y-%m-%d")
-save_dir = Path(f"Python-Meraki/data/{today_str}")
-save_dir.mkdir(parents=True, exist_ok=True)
+# adjust if needed
+base_path = Path("/mnt/01D53F0A0F195940/LUFFY/SEIJURO/PYTHON/Python-Git")
+data_dir = base_path / "Python-Meraki/data"
+diff_dir = data_dir / "diff_logs"
+diff_dir.mkdir(parents=True, exist_ok=True)
 
-# --- Network ID you are working on ---
-NETWORK_ID = "L_669910444571378999"
+# --- Identify the latest and previous snapshot folders ---
+snapshot_folders = sorted(
+    [f for f in data_dir.iterdir() if f.is_dir()], reverse=True)
 
+if len(snapshot_folders) < 2:
+    logging.error("Not enough snapshots to perform diff.")
+    exit(1)
 
-def save_json(data, filename):
-    with open(save_dir / filename, "w") as f:
-        json.dump(data, f, indent=4)
-    logging.info(f"Saved {filename}")
+latest_snapshot = snapshot_folders[0]
+previous_snapshot = snapshot_folders[1]
 
+logging.info(
+    f"Comparing:\nLATEST: {latest_snapshot}\nPREVIOUS: {previous_snapshot}")
 
-def snapshot():
-    dashboard = meraki.DashboardAPI(api_key=API_KEY, suppress_logging=True)
+# --- Drift detection ---
+diff_report = {}
+for latest_file in latest_snapshot.glob("*.json"):
+    previous_file = previous_snapshot / latest_file.name
+    if previous_file.exists():
+        with open(latest_file, "r") as f1, open(previous_file, "r") as f2:
+            data1 = json.load(f1)
+            data2 = json.load(f2)
 
-    # --- Orgs & Networks ---
-    orgs = dashboard.organizations.getOrganizations()
-    save_json(orgs, "organizations.json")
+            diff = DeepDiff(data2, data1, ignore_order=True)
+            if diff:
+                diff_report[latest_file.name] = diff
 
-    for org in orgs:
-        org_id = org["id"]
-        networks = dashboard.organizations.getOrganizationNetworks(org_id)
-        save_json(networks, f"networks_{org_id}.json")
+# --- Save drift report ---
+timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M")
+report_file = diff_dir / f"{timestamp}_drift_report.json"
 
-    # --- Devices ---
-    devices = dashboard.networks.getNetworkDevices(NETWORK_ID)
-    save_json(devices, f"devices_{NETWORK_ID}.json")
+with open(report_file, "w") as f:
+    json.dump(diff_report, f, indent=4)
 
-    # --- SSIDs ---
-    ssids = dashboard.wireless.getNetworkWirelessSsids(NETWORK_ID)
-    save_json(ssids, f"ssids_{NETWORK_ID}.json")
+logging.info(f"Drift report saved: {report_file}")
 
-    # --- Devices Ports ---
-    for device in devices:
-        serial = device.get("serial")
-        try:
-            ports = dashboard.switch.getDeviceSwitchPorts(serial)
-            save_json(ports, f"ports_{serial}.json")
-        except Exception as e:
-            logging.warning(
-                f"Skipping ports for {serial} (likely not a switch): {e}")
-
-    logging.info("Nightly snapshot completed successfully.")
-
-
-if __name__ == "__main__":
-    snapshot()
+if diff_report:
+    logging.info(f"Drifts detected in {len(diff_report)} files.")
+else:
+    logging.info("No drifts detected.")
