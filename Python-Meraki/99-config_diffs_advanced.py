@@ -1,4 +1,6 @@
-# expanding on 99-config_diffs to remove noise & frequently changing values
+# expanding on 99-config_diffs to:
+#   remove noise & frequently changing values
+#   integrate MS teams for alerting using webhooks
 
 # this script assumes you already have nightly backups turned on.
 import json
@@ -7,12 +9,18 @@ from datetime import datetime
 from deepdiff import DeepDiff
 import logging
 import re       # using regular expression to identify noise.
+import requests
 
 # -- logging setup --
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
+# --- loading webhook URL ---
+with open("/automation/secrets/keys.json", "r") as temp:
+    secret = json.load(temp)
+    webhook_url = secret["teams_webhook"]
 
 # -- paths --
 base_path = Path("/automation/python-data/")
@@ -70,7 +78,34 @@ with open(report_file, "w") as f:
 
 logging.info(f"\nDiff Report generated: {report_file}\n")
 
+# check out "99-config_diffs_MS_Teams_Integration.txt" file for instructions on how to setup Teams to receive these alerts.
+
+
+def send_teams_notification(message):
+    if webhook_url:     # ensuring webhook_url is present in your keys.json file.
+        # json payload. has to be json since Teams expect json payload!
+        # your MS teams webhook needs to be setup to accept the payload in this exact format.
+        # check the webhook instruction file, you will find the matching schema for it there.
+        payload = {"text": message}
+        try:
+            response = requests.post(webhook_url, json=payload)
+            # Teams will send 202. we are capturing some other successfull codes as well. might not be needed!
+            if response.status_code in [200, 201, 202]:
+                logging.info("Teams notification sent successfully.")
+            else:
+                logging.error(f"Teams notification failed: {response.text}")
+        except Exception as e:
+            logging.error(f"Teams notification error: {e}")
+
+
 if diff_report:
     logging.info(f"Drifts detected: {len(diff_report)} json files")
+    message = (
+        f"⚠️ **Meraki Config Drift Detected**\n"
+        f"- Drifts in `{len(diff_report)}` JSON files.\n"
+        f"- Report: `{report_file}`\n"
+        f"- Time: `{timestamp}`"
+    )
+    send_teams_notification(message)
 else:
     logging.info("No drifts dectected")

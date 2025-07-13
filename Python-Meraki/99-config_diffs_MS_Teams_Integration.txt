@@ -1,0 +1,27 @@
+# instructions to setup a webhook in MS teams to receive alerts from Python's request module.
+
+step1:
+Create a team (or use exisitng one)
+Create a channel (or use exisitng one)
+
+step2:
+Teams > Workflows > Create from blank
+> search for "webhook", select "When a Teams webhook request is received"
+> New step
+> search for "Parse JSON"
+> paste in following schema:
+{
+    "type": "object",
+    "properties": {
+        "text": {
+            "type": "string"
+        }
+    }
+}
+> Add step
+> search for "Post message in a chat or channel"
+> select the desired values from "Post in", "Team" & "Channel" dropdowns
+> in the "message" body, paste in the following:
+@{triggerBody()?['text']}
+> save
+> test from 99-config_diffs_advances.py script
