@@ -8,7 +8,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-with open("../Secrets/keys.json", "r") as temp:
+with open("/automation/secrets/keys.json", "r") as temp:
     secret = json.load(temp)
     API_KEY = secret["api_key"]
 

@@ -4,19 +4,25 @@ import logging
 from pathlib import Path
 from datetime import datetime
 
+
 # --- Setup logging ---
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-with open("../Secrets/keys.json", "r") as temp:
+# --- loading API key ---
+with open("/automation/secrets/keys.json", "r") as temp:
     secret = json.load(temp)
     API_KEY = secret["api_key"]
 
-# creating a path to store our backups:
-current_hr_str = datetime.now().strftime("%y-%m-%d-%H")  # every hour.
-save_dir = Path(f"Python-Meraki/data/{current_hr_str}")
+# ---- creating a path to store our backups ---
+# strftime formats dattime for us.
+current_hr_str = datetime.now().strftime("%y-%m-%d-%H-%M")
+# Using Path to join paths.
+save_dir = Path(
+    f"/automation/python-data/99-nightly_snapshot/{current_hr_str}")
+# Path allows mkdir method which lets us create the directory (if it doesn't exist)
 save_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -86,3 +92,15 @@ def snapshot():
 
 if __name__ == "__main__":
     snapshot()
+
+
+# Once you've tested this script successfully, you can add a cronjob to automate nightly snapshots:
+# crontab -e
+# add below line:
+# 0 * * * * /path/to/python/venv/Python-Git/Python-Meraki/venv_meraki_automation/bin/python /path/to/script/99-nightly_snapshot.py >> /automation/logs/99-nightly_snapshot.log 2>&1
+# explanation:
+# 0 2 * * * --> means at 2am (2h 0m) every day every month every day of the week
+# /path/to/python/venv/ --> i am using a python venv so i am specifying the path
+# /path/to/script/ --> path to this script
+# >> /automation/logs/99-nightly_snapshot.log 2>&1
+#       --> above line is logging to .log file. 2>&1 is used to also log the errors to the same file.

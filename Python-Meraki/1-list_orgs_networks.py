@@ -11,7 +11,7 @@ logging.basicConfig(
 # --- loading key from a file; this will be common across all scripts FYI ---
 # you should place your key somewhere safe. my key is not part of the git.
 
-with open("../Secrets/keys.json", "r") as temp:
+with open("/automation/secrets/keys.json", "r") as temp:
     secret = json.load(temp)
     API_KEY = secret["api_key"]
 
