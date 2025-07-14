@@ -1,0 +1,13 @@
+{
+    "ports_669910444571365932_L_669910444571379009_QBSB-ZSMU-GSYE.json": {
+        "values_changed": {
+            "root[2]['type']": {
+                "new_value": "access",
+                "old_value": "trunk"
+            }
+        },
+        "iterable_item_removed": {
+            "root[5]['tags'][0]": "printers"
+        }
+    }
+}
