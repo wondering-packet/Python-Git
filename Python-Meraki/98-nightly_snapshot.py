@@ -1,3 +1,4 @@
+import subprocess
 import meraki
 import json
 import logging
@@ -29,7 +30,7 @@ save_dir.mkdir(parents=True, exist_ok=True)
 def save_json(data, filename):
     # "/" is used to join paths. it's from pathlib.
     with open(save_dir/filename, "w") as f:
-        json.dump(data, f, indent=4)
+        json.dump(data, f, indent=4, sort_keys=True)
     logging.info(f"Saved {filename}")
 
 

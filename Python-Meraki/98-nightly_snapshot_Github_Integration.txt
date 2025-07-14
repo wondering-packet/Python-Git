@@ -1,0 +1,21 @@
+# script 98 is taking nightly snapshots. let's push a copy of the snapshots to a private repo
+# for change history & tracking. this can be useful for compliance as well.
+
+step1: cd into your snapshot folder, e.g.
+> cd /automation/python-data/99-nightly_snapshot
+step2: initialize git int the directory:
+> git init
+step3: change default branch to "main"
+> git branch -m main
+step4: configure username & email. not required if already configured.
+> git config user.name "Your Name"
+>> validate: git config --global user.name
+> git config user.email "your.email@example.com"
+>> validate: git config user.email
+step5: goto github & create a new private repo
+> name it "meraki-snapshot" or whatever you like.
+step6: connect the remote repo
+> git remote add origin https://github.com/yourusername/meraki-snapshots.git
+>> validate: gt remote -v
+> git push -u origin main
+step7: run script 98 advanced.

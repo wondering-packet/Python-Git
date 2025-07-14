@@ -1,5 +1,5 @@
 # expanding on 99-config_diffs to:
-#   remove noise & frequently changing values
+#   remove noise i.e. frequently changing values
 #   integrate MS teams for alerting using webhooks
 
 # this script assumes you already have nightly backups turned on.
@@ -10,6 +10,7 @@ from deepdiff import DeepDiff
 import logging
 import re       # using regular expression to identify noise.
 import requests
+import subprocess
 
 # -- logging setup --
 logging.basicConfig(
@@ -78,6 +79,22 @@ with open(report_file, "w") as f:
 
 logging.info(f"\nDiff Report generated: {report_file}\n")
 
+# below code is assuming you have gone through "98-nightly_snapshot_Github_Integration.txt"
+# repo_dir is the name of current snapshot, tag_name is what will be pushed to Git.
+# tag then can be used to track diffs in Git.
+
+
+def git_tag_only(repo_dir, tag_name=None):
+    try:
+        subprocess.run(
+            ["git", "-C", repo_dir, "tag", tag_name], check=True)
+        subprocess.run(["git", "-C", repo_dir, "push",
+                        "origin", tag_name], check=True)
+        logging.info(f"Tag {tag_name} pushed successfully.")
+
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Git operation failed: {e}")
+
 # check out "99-config_diffs_MS_Teams_Integration.txt" file for instructions on how to setup Teams to receive these alerts.
 
 
@@ -98,8 +115,10 @@ def send_teams_notification(message):
             logging.error(f"Teams notification error: {e}")
 
 
+# triggers as long as diff_report is not empty (which evaluates to True)
 if diff_report:
     logging.info(f"Drifts detected: {len(diff_report)} json files")
+    # block 1: MS teams integration
     message = (
         f"⚠️ **Meraki Config Drift Detected**\n"
         f"- Drifts in `{len(diff_report)}` JSON files.\n"
@@ -107,5 +126,13 @@ if diff_report:
         f"- Time: `{timestamp}`"
     )
     send_teams_notification(message)
+    # block 2: Github integration.
+    # Pushing tags; this is assuming you have already commited & pushed in your 98 script.
+    tag_name = f"drift-{timestamp}"
+    repo_dir = "/automation/python-data/99-nightly_snapshot"
+    git_tag_only(
+        repo_dir=data_dir,
+        tag_name=tag_name
+    )
 else:
     logging.info("No drifts dectected")
