@@ -36,7 +36,7 @@ def save_json(data, filename):
 
 # below function is auto commiting & pushing to a remote repo
 # for how to setup the remote repo,
-# read instructions in "98-nightly_snapshot_Github_Integration.txt"
+# read instructions in "098-B--nightly_snapshot_Github_Integration.txt"
 
 def git_commit_snapshots(snapshot_folder):
     try:

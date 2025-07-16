@@ -24,4 +24,4 @@ Teams > Workflows > Create from blank
 > in the "message" body, paste in the following:
 @{triggerBody()?['text']}
 > save
-> test from 99-config_diffs_advances.py script
+> test from 099-C script

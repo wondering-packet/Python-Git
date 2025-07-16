@@ -1,4 +1,4 @@
-# script 98 is taking nightly snapshots. let's push a copy of the snapshots to a private repo
+# script 098-A is taking nightly snapshots. let's push a copy of the snapshots to a private repo
 # for change history & tracking. this can be useful for compliance as well.
 
 step1: cd into your snapshot folder, e.g.
@@ -17,5 +17,10 @@ step5: goto github & create a new private repo
 step6: connect the remote repo
 > git remote add origin https://github.com/yourusername/meraki-snapshots.git
 >> validate: gt remote -v
+step7: stage untracked files (you need to have atleasst one snapshot file in your directory)
+> git add .
+step8: commit
+> git commit -m "first commit"
+step9: push
 > git push -u origin main
-step7: run script 98 advanced.
+step7: run script 098-C.

@@ -1,122 +1,131 @@
-# 100-compliance_audit.py
-# Performs compliance audit:
-# ✅ All access switch ports must have "NAC-Test-Policy"
-# ✅ All access switch ports must have at least one tag
-# ✅ Generates JSON + Teams alert if non-compliance is found
-# ✅ Designed for CRON and Git automation
+# 101--compliance_audit_auto_remediation.py
 
 import meraki
-import json
 import logging
+import json
 from pathlib import Path
 from datetime import datetime
 import requests
 
-# --- Logging ---
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# --- Setup ---
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 
-# --- Paths ---
 base_path = Path("/automation/python-data/")
 report_dir = base_path / "compliance_reports"
 report_dir.mkdir(parents=True, exist_ok=True)
 
-# --- Load API Key ---
 with open("/automation/secrets/keys.json", "r") as f:
-    API_KEY = json.load(f)["api_key"]
+    secret = json.load(f)
+    API_KEY = secret["api_key"]
+    TEAMS_WEBHOOK_URL = secret["teams_webhook"]
 
-# --- Teams Webhook ---
-TEAMS_WEBHOOK_URL = "https://your-teams-webhook-url"
-
-# --- Initialize Meraki Dashboard ---
 dashboard = meraki.DashboardAPI(api_key=API_KEY, suppress_logging=True)
 
-# --- Compliance Logic ---
+compliance_access_port_policy = "NAC-Test-Policy"
+default_tag = "user-port"
 
 
-def check_compliance():
-    failures = []
+def remediate_compliance():
+    remediated_ports = []
     orgs = dashboard.organizations.getOrganizations()
 
     for org in orgs:
         org_id = org["id"]
+        org_name = org["name"]
         networks = dashboard.organizations.getOrganizationNetworks(org_id)
 
-        for net in networks:
-            network_id = net["id"]
-            try:
-                ports = dashboard.switch.getNetworkSwitchPorts(network_id)
-            except Exception as e:
-                logging.warning(f"Skipping network {network_id}: {e}")
-                continue
+        for network in networks:
+            network_id = network["id"]
+            network_name = network["name"]
+            devices = dashboard.organizations.getOrganizationDevices(
+                org_id, networkIds=network_id)
 
-            for port in ports:
-                port_id = port["portId"]
-                compliance = True
-                reasons = []
+            for device in devices:
+                device_id = device["serial"]
+                device_name = device["name"] or "N/A"
 
-                # Check if access port
-                if port.get("type") == "access":
-                    # Check NAC policy
-                    policy_name = port.get("accessPolicyType")
-                    if policy_name != "NAC-Test-Policy":
-                        compliance = False
-                        reasons.append(
-                            f"Expected NAC-Test-Policy, found {policy_name}")
+                try:
+                    ports = dashboard.switch.getDeviceSwitchPorts(device_id)
+                except Exception as e:
+                    logging.warning(
+                        f"Serial: {device_id} ; Device: {device_name} ; {e}")
+                    continue
 
-                    # Check tags
+                for port in ports:
+                    if port.get("type") != "access" or not port.get("enabled", True):
+                        continue  # skip non-access or disabled ports
+
+                    port_id = port["portId"]
+                    actions = []
+
+                    # --- Check & remediate tag ---
                     tags = port.get("tags", [])
                     if not tags:
-                        compliance = False
-                        reasons.append("No tags assigned")
+                        try:
+                            dashboard.switch.updateDeviceSwitchPort(
+                                device_id, port_id, tags=[default_tag])
+                            actions.append("Assigned default tag 'user-port'")
+                        except Exception as e:
+                            logging.error(
+                                f"Failed to assign tag on {device_name} {port_id}: {e}")
 
-                if not compliance:
-                    failures.append({
-                        "org_name": org["name"],
-                        "network_name": net["name"],
-                        "network_id": network_id,
-                        "port_id": port_id,
-                        "reasons": reasons
-                    })
+                    # --- Check & remediate access policy ---
+                    policy_name = port.get("accessPolicyType")
+                    if policy_name == "Custom access policy":
+                        policy_num = port.get("accessPolicyNumber")
+                        policy_data = dashboard.switch.getNetworkSwitchAccessPolicy(
+                            network_id, policy_num)
+                        policy_name = policy_data["name"]
 
-    return failures
+                    if policy_name != compliance_access_port_policy:
+                        try:
+                            dashboard.switch.updateDeviceSwitchPort(
+                                device_id, port_id, accessPolicyType=compliance_access_port_policy
+                            )
+                            actions.append(
+                                f"Assigned access policy '{compliance_access_port_policy}'")
+                        except Exception as e:
+                            logging.error(
+                                f"Failed to assign policy on {device_name} {port_id}: {e}")
 
-# --- Save and Notify ---
+                    if actions:
+                        remediated_ports.append({
+                            "org_name": org_name,
+                            "network_name": network_name,
+                            "device_name": device_name,
+                            "device_id": device_id,
+                            "port_id": port_id,
+                            "actions": actions
+                        })
+    return remediated_ports
 
 
-def save_report_and_notify(failures):
+def save_remediation_report_and_notify(remediated_ports):
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M")
-    report_file = report_dir / f"{timestamp}_compliance_report.json"
-
+    report_file = report_dir / f"{timestamp}_remediation_report.json"
     with open(report_file, "w") as f:
-        json.dump(failures, f, indent=4)
+        json.dump(remediated_ports, f, indent=4)
 
-    logging.info(f"Compliance report saved: {report_file}")
+    logging.info(f"Remediation report saved: {report_file}")
 
-    # Send Teams Notification
-    if failures:
-        summary = f"🚨 Meraki Compliance Audit: {len(failures)} non-compliant ports found."
+    if remediated_ports:
+        message = f"Meraki Auto-Remediation: {len(remediated_ports)} ports remediated."
     else:
-        summary = "✅ Meraki Compliance Audit: All ports compliant."
+        message = "Meraki Auto-Remediation: No remediation required."
 
-    payload = {
-        "text": summary
-    }
-
-    try:
-        response = requests.post(TEAMS_WEBHOOK_URL, json=payload)
-        if response.status_code == 200:
-            logging.info("Teams notification sent.")
-        else:
-            logging.error(
-                f"Teams notification failed: {response.status_code} {response.text}")
-    except Exception as e:
-        logging.error(f"Teams notification error: {e}")
+    if TEAMS_WEBHOOK_URL:
+        payload = {"text": message}
+        try:
+            response = requests.post(TEAMS_WEBHOOK_URL, json=payload)
+            if response.status_code in [200, 201, 202]:
+                logging.info("Teams notification sent successfully.")
+            else:
+                logging.error(f"Teams notification failed: {response.text}")
+        except Exception as e:
+            logging.error(f"Teams notification error: {e}")
 
 
-# --- Main ---
 if __name__ == "__main__":
-    failures = check_compliance()
-    save_report_and_notify(failures)
+    remediated_ports = remediate_compliance()
+    save_remediation_report_and_notify(remediated_ports)

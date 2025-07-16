@@ -20,7 +20,7 @@ logging.basicConfig(
 
 # --- paths ---
 base_path = Path("/automation/python-data/meraki-compliance-local")
-report_dir = base_path / "compliance_reports"
+report_dir = base_path / "remediation_reports"
 report_dir.mkdir(parents=True, exist_ok=True)
 
 # --- Load API Key ---
@@ -36,7 +36,14 @@ dashboard = meraki.DashboardAPI(api_key=API_KEY, suppress_logging=True)
 
 # --- complaince object ---
 compliance_access_port_policy = "NAC-Test-Policy"
+# every access policy has a number which is unique ID.
+# you will need this to specify later to assign the correct policy on the port.
+# how do i get this? navigate to your access policy in Meraki dashboard
+# then note down the number at the end of the URL, that is the policy number.
+# why am i doing it like this??
+#   because Meraki doesn't expose the policy number cleanly. So this is the workaround.
 compliance_access_port_policy_number = 1
+default_tag = "user-port"
 
 # below function is auto commiting & pushing to a remote repo
 # for how to setup the remote repo,
@@ -45,32 +52,8 @@ compliance_access_port_policy_number = 1
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M")
 
 
-def git_commit_snapshots(compliance_file, tag=None):
-    try:
-        repo_dir = base_path
-        commit_message = f"Compliance report"
-
-        subprocess.run(["git", "-C", repo_dir, "add",
-                       f"{compliance_file}"], check=True)
-        subprocess.run(["git", "-C", repo_dir, "commit",
-                       "-m", commit_message], check=True)
-        subprocess.run(["git", "-C", repo_dir, "push"], check=True)
-
-        if tag:
-            tag_name = f"Compliance-Failed-{timestamp}"
-            subprocess.run(
-                ["git", "-C", repo_dir, "tag", tag_name], check=True)
-            subprocess.run(["git", "-C", repo_dir, "push",
-                            "origin", tag_name], check=True)
-            logging.info(f"Tag {tag_name} pushed successfully.")
-
-        logging.info(f"Compliance report committed to Git: {compliance_file}")
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Git commit failed: {e}")
-
-
-def check_compliance():
-    failures = []       # storing all non compliant ports here.
+def remediate_compliance():
+    successes = []       # storing all remediated ports here.
     orgs = dashboard.organizations.getOrganizations()
 
     for each_org in orgs:
@@ -81,6 +64,7 @@ def check_compliance():
         for network in networks:
             network_id = network["id"]
             network_name = network["name"]
+
             # this is the newer call to pull devices.
             devices = dashboard.organizations.getOrganizationDevices(
                 org_id, networkIds=network_id)
@@ -100,11 +84,11 @@ def check_compliance():
                     continue
                 for each_port in ports:
                     port_id = each_port["portId"]
-                    compliance = True   # a default pass.
-                    reasons = []        # storing failed reasons for a port.
+                    actions = []        # storing actions performed on a port.
 
                     # evaluating below block only if the port is access & it's enabled.
                     if each_port.get("type") == "access" and each_port.get("enabled"):
+                        remediated = False
                         # i think below attribute used to be able to output actual policy name before
                         # but unfortunately it doesn't work the same way anymore;
                         # it now sends "Custom access policy" for the name instead of the actual policy name.
@@ -120,10 +104,15 @@ def check_compliance():
                             # updating the policy_name for custom policy
                             policy_name = policy_data["name"]
                         if policy_num != compliance_access_port_policy_number:
-                            compliance = False      # compliance failure.
-                            reasons.append(
-                                f"Expected {compliance_access_port_policy} but found {policy_name}")
+                            dashboard.switch.updateDeviceSwitchPort(
+                                device_id, port_id, accessPolicyType="Custom access policy",
+                                accessPolicyNumber=compliance_access_port_policy_number
+                            )
+                            actions.append(
+                                f"Remdiation: assigned default access policy {compliance_access_port_policy}"
 
+                            )
+                            remediated = True
                         # if "tags" is empty then assign an empty list using [].
                         # the reason for using a list is, it's easy to do a If logic to determine if a value
                         # exists in the list. If "tags" did return some value (which means port has at least 1 tag)
@@ -131,12 +120,15 @@ def check_compliance():
                         # defined further below.
                         each_port_tags = each_port.get("tags", [])
                         if not each_port_tags:
-                            compliance = False      # compliance failure.
-                            reasons.append(
-                                f"Expected port to be tagged but it isn't")
+                            dashboard.switch.updateDeviceSwitchPort(
+                                device_id, port_id, tags=[default_tag])
+                            actions.append(
+                                f"Remdiation: assigned default tag {default_tag}"
+                            )
+                            remediated = True
 
-                        if not compliance:
-                            failures.append(
+                        if remediated:
+                            successes.append(
                                 {
                                     "org_name": org_name,
                                     "network_name": network_name,
@@ -144,29 +136,55 @@ def check_compliance():
                                     "device_name": device_name,
                                     "device_id": device_id,
                                     "port_id": port_id,
-                                    "reasons": reasons
+                                    "action": actions
                                 }
                             )
                             logging.info(
-                                f"Compliance failure on device name: {device_name} - serial: {device_id} - port: {port_id} ; reasons: {reasons}")
-    return failures
+                                f"\n> Compliance failed items remediated on device name: {device_name} - serial: {device_id} - port: {port_id}\n\t>> Actions\n\t\t>>> {actions}")
+    return successes
 
 
-def save_report_and_notify(failures):
-    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M")
-    report_file = report_dir/f"{timestamp}_compliance_report.json"
-    with open(report_file, "w") as f:
-        json.dump(failures, f, indent=4)
-    logging.info(f"Compliance report saved: {report_file}.")
+def git_commit_snapshots(report_file, tag=None):
+    try:
+        repo_dir = base_path
+        commit_message = f"Auto Remediation report"
 
-    if failures:
+        subprocess.run(["git", "-C", repo_dir, "add",
+                       f"{report_file}"], check=True)
+        subprocess.run(["git", "-C", repo_dir, "commit",
+                       "-m", commit_message], check=True)
+        subprocess.run(["git", "-C", repo_dir, "push"], check=True)
+
+        if tag:
+            tag_name = f"Auto-remediation-{timestamp}"
+            subprocess.run(
+                ["git", "-C", repo_dir, "tag", tag_name], check=True)
+            subprocess.run(["git", "-C", repo_dir, "push",
+                            "origin", tag_name], check=True)
+            logging.info(f"Tag {tag_name} pushed successfully.")
+
         logging.info(
-            f"#####--Compliance Failed; Check report for details--#####")
-        message = f"Meraki Compliance Audit: {len(failures)} non-compliant ports found.\nCheck report at {report_file}"
+            f"Auto Remediation report committed to Git: {report_file}")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Git commit failed: {e}")
+
+
+def save_report_and_notify(successes):
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M")
+    report_file = report_dir/f"{timestamp}_remediation_report.json"
+    with open(report_file, "w") as f:
+        json.dump(successes, f, indent=4)
+    logging.info(f"Remediation report saved: {report_file}.")
+
+    if successes:
+        logging.info(
+            f"#####--Autoremediated non-compliant ports; Check report for details--#####")
+        message = f"Meraki Auto Remediation: {len(successes)} non-compliant ports remediated.\nCheck report at {report_file}"
         tag = True
     else:
-        logging.info(f"#####--Compliance Passed; All ports compliant--#####")
-        message = f"Meraki Compliance Audit: All ports compliant."
+        logging.info(
+            f"#####--No Autoremediation; All ports already compliant--#####")
+        message = f"Meraki Auto Remediation: All ports already compliant."
         tag = None
 
     git_commit_snapshots(report_file, tag)
@@ -188,5 +206,5 @@ def save_report_and_notify(failures):
 
 
 if __name__ == "__main__":
-    failures = check_compliance()
-    save_report_and_notify(failures)
+    successes = remediate_compliance()
+    save_report_and_notify(successes)

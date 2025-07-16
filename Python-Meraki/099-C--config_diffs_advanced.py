@@ -21,7 +21,7 @@ logging.basicConfig(
 # --- loading webhook URL ---
 with open("/automation/secrets/keys.json", "r") as temp:
     secret = json.load(temp)
-    webhook_url = secret["teams_webhook"]
+    TEAMS_WEBHOOK_URL = secret["teams_webhook"]
 
 # -- paths --
 base_path = Path("/automation/python-data/")
@@ -99,13 +99,13 @@ def git_tag_only(repo_dir, tag_name=None):
 
 
 def send_teams_notification(message):
-    if webhook_url:     # ensuring webhook_url is present in your keys.json file.
+    if TEAMS_WEBHOOK_URL:     # ensuring webhook_url is present in your keys.json file.
         # json payload. has to be json since Teams expect json payload!
         # your MS teams webhook needs to be setup to accept the payload in this exact format.
         # check the webhook instruction file, you will find the matching schema for it there.
         payload = {"text": message}
         try:
-            response = requests.post(webhook_url, json=payload)
+            response = requests.post(TEAMS_WEBHOOK_URL, json=payload)
             # Teams will send 202. we are capturing some other successfull codes as well. might not be needed!
             if response.status_code in [200, 201, 202]:
                 logging.info("Teams notification sent successfully.")
