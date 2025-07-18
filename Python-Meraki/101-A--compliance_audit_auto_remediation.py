@@ -11,6 +11,7 @@ from datetime import datetime
 import requests
 import json
 import subprocess
+import time
 
 # --- usual logging ---
 logging.basicConfig(
@@ -36,13 +37,6 @@ dashboard = meraki.DashboardAPI(api_key=API_KEY, suppress_logging=True)
 
 # --- complaince object ---
 compliance_access_port_policy = "NAC-Test-Policy"
-# every access policy has a number which is unique ID.
-# you will need this to specify later to assign the correct policy on the port.
-# how do i get this? navigate to your access policy in Meraki dashboard
-# then note down the number at the end of the URL, that is the policy number.
-# why am i doing it like this??
-#   because Meraki doesn't expose the policy number cleanly. So this is the workaround.
-compliance_access_port_policy_number = 1
 default_tag = "user-port"
 
 # below function is auto commiting & pushing to a remote repo
@@ -55,6 +49,9 @@ timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M")
 def remediate_compliance():
     successes = []       # storing all remediated ports here.
     orgs = dashboard.organizations.getOrganizations()
+    ports_checked = 0
+    ports_skipped_compliant = 0
+    ports_remediated = 0
 
     for each_org in orgs:
         org_id = each_org["id"]
@@ -68,6 +65,29 @@ def remediate_compliance():
             # this is the newer call to pull devices.
             devices = dashboard.organizations.getOrganizationDevices(
                 org_id, networkIds=network_id)
+
+            # --- dynamically fetch correct NAC policy number ---
+            policies = dashboard.switch.getNetworkSwitchAccessPolicies(
+                network_id)
+            compliance_access_port_policy_number = None
+
+            for p in policies:
+                # below expression will confirm if our policy exists.
+                # validating this lets us skip making unnecessary API calls.
+                if p["name"] == compliance_access_port_policy:
+                    # setting the policy_number for our compliance policy
+                    # also we have to do a type conversion because currenlty policy number is type[None]
+                    compliance_access_port_policy_number = int(
+                        p["accessPolicyNumber"])
+                    break
+
+            # this means our policy doesn't exist.
+            if compliance_access_port_policy_number == None:
+                logging.error(
+                    f"NAC policy '{compliance_access_port_policy}' not found in network '{network_name}'. Skipping remediation for this network.")
+                # skip this for loop if policy # is not found in the network.
+                continue
+
             for each_device in devices:
                 device_id = each_device["serial"]
                 # if device_name is empty then default it to "N/A". this is based on truthsy & falsy logic.
@@ -83,6 +103,7 @@ def remediate_compliance():
                         f"Serial: {device_id} ; Device name: {device_name}; {e}")
                     continue
                 for each_port in ports:
+                    ports_checked += 1
                     port_id = each_port["portId"]
                     actions = []        # storing actions performed on a port.
 
@@ -98,18 +119,25 @@ def remediate_compliance():
                         policy_num = each_port.get("accessPolicyNumber")
                         # using the if logic to update the policy name if "Custom access policy" is found.
                         if policy_name == "Custom access policy":
-                            # this is another API call which can pull the Actual policy name.
-                            policy_data = dashboard.switch.getNetworkSwitchAccessPolicy(
-                                network_id, policy_num)
+                            try:
+                                # this is another API call which can pull the Actual policy name.
+                                policy_data = dashboard.switch.getNetworkSwitchAccessPolicy(
+                                    network_id, policy_num)
+
+                            except Exception as e:
+                                logging.warning(
+                                    f"Could not fetch policy name for policy_num={policy_num} in network {network_name}: {e}")
+
                             # updating the policy_name for custom policy
                             policy_name = policy_data["name"]
+                        # our compliance number is currenlty type[None]
                         if policy_num != compliance_access_port_policy_number:
                             dashboard.switch.updateDeviceSwitchPort(
                                 device_id, port_id, accessPolicyType="Custom access policy",
                                 accessPolicyNumber=compliance_access_port_policy_number
                             )
                             actions.append(
-                                f"Remdiation: assigned default access policy {compliance_access_port_policy}"
+                                f"Remediation: assigned default access policy {compliance_access_port_policy}"
 
                             )
                             remediated = True
@@ -123,11 +151,12 @@ def remediate_compliance():
                             dashboard.switch.updateDeviceSwitchPort(
                                 device_id, port_id, tags=[default_tag])
                             actions.append(
-                                f"Remdiation: assigned default tag {default_tag}"
+                                f"Remediation: assigned default tag {default_tag}"
                             )
                             remediated = True
 
                         if remediated:
+                            ports_remediated += 1
                             successes.append(
                                 {
                                     "org_name": org_name,
@@ -141,6 +170,15 @@ def remediate_compliance():
                             )
                             logging.info(
                                 f"\n> Compliance failed items remediated on device name: {device_name} - serial: {device_id} - port: {port_id}\n\t>> Actions\n\t\t>>> {actions}")
+
+                        else:
+                            ports_skipped_compliant += 1
+                    else:
+                        ports_skipped_compliant += 1
+
+    logging.info(
+        f"Remediation summary: Ports checked={ports_checked}, Ports remediated={ports_remediated}, Ports skipped as compliant/irrelevant={ports_skipped_compliant}"
+    )
     return successes
 
 
@@ -206,5 +244,13 @@ def save_report_and_notify(successes):
 
 
 if __name__ == "__main__":
+    start_time = time.perf_counter()
     successes = remediate_compliance()
     save_report_and_notify(successes)
+    end_time = time.perf_counter()
+    total_time = end_time-start_time
+    logging.info(
+        f"Time taken (without multi-threading):\n\t<{total_time:.2f}sec>")
+
+    # takes about ~27 seconds to remediate 10 ports.
+    # added above block to compare time with the updated advanced script 101-B.

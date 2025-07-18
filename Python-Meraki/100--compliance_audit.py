@@ -36,7 +36,6 @@ dashboard = meraki.DashboardAPI(api_key=API_KEY, suppress_logging=True)
 
 # --- complaince object ---
 compliance_access_port_policy = "NAC-Test-Policy"
-compliance_access_port_policy_number = 1
 
 # below function is auto commiting & pushing to a remote repo
 # for how to setup the remote repo,
@@ -84,6 +83,28 @@ def check_compliance():
             # this is the newer call to pull devices.
             devices = dashboard.organizations.getOrganizationDevices(
                 org_id, networkIds=network_id)
+
+            # --- dynamically fetch correct NAC policy number ---
+            policies = dashboard.switch.getNetworkSwitchAccessPolicies(
+                network_id)
+            compliance_access_port_policy_number = None
+            for p in policies:
+                # below expression will confirm if our policy exists.
+                # validating this lets us skip making unnecessary API calls.
+                if p["name"] == compliance_access_port_policy:
+                    # setting the policy_number for our compliance policy.
+                    # also we have to do a type conversion because currenlty policy number is type[None]
+                    compliance_access_port_policy_number = int(
+                        p["accessPolicyNumber"])
+                    break
+
+            # this means our policy doesn't exist.
+            if compliance_access_port_policy_number is None:
+                logging.error(
+                    f"NAC policy '{compliance_access_port_policy}' not found in network '{network_name}'. Skipping remediation for this network.")
+                # skip this for loop if policy # is not found in the network.
+                continue
+
             for each_device in devices:
                 device_id = each_device["serial"]
                 # if device_name is empty then default it to "N/A". this is based on truthsy & falsy logic.
@@ -119,6 +140,7 @@ def check_compliance():
                                 network_id, policy_num)
                             # updating the policy_name for custom policy
                             policy_name = policy_data["name"]
+
                         if policy_num != compliance_access_port_policy_number:
                             compliance = False      # compliance failure.
                             reasons.append(
