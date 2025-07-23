@@ -7,15 +7,18 @@
 # input:
 # racks, region_supernets needed.
 
-import ipaddress
 import requests
-import urllib3
 import time
+import urllib3
+import json
 
+# Disable SSL warnings for lab
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-API_BASE_URL = "https://URL_ADDRESS/api/API_ID"
-API_TOKEN = "TOKEN"
+with open("/automation/secrets/phpipam.json", "r") as f:
+    secret = json.load(f)
+    API_BASE_URL = secret["API_BASE_URL"]
+    API_TOKEN = secret["API_TOKEN"]
 
 HEADERS = {"token": API_TOKEN, "Content-Type": "application/json"}
 
@@ -228,7 +231,7 @@ def find_next_free_subnets(parent_network, prefix, used_subnets, count):
     return available
 
 
-def seed_subnets():
+def populate_subnets():
     used_subnets = get_existing_subnets()
     vlans_per_rack = 5  # Adjust as needed
 
@@ -269,4 +272,4 @@ def seed_subnets():
 
 
 if __name__ == "__main__":
-    seed_subnets()
+    populate_subnets()

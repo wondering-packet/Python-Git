@@ -206,9 +206,9 @@ for rack in racks:
 Commands:
 
 DELETE FROM vlans;
-DELETE FROM subnets WHERE description LIKE '%Seeded%';
+DELETE FROM subnets WHERE description LIKE '%populateed%';
 
-SELECT id, subnet, mask, description FROM subnets WHERE description LIKE 'Seeded % subnet for%';
+SELECT id, subnet, mask, description FROM subnets WHERE description LIKE 'populateed % subnet for%';
 
 SELECT
 ->     d.hostname,

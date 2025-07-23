@@ -42,8 +42,8 @@ MariaDB [phpipam]> SELECT id, name FROM circuitProviders;
 +----+------------+
 3 rows in set (0.000 sec)
 
-MariaDB [phpipam]> -- Initialize randomization seed
-MariaDB [phpipam]> SET @seed := UNIX_TIMESTAMP();
+MariaDB [phpipam]> -- Initialize randomization populate
+MariaDB [phpipam]> SET @populate := UNIX_TIMESTAMP();
 Query OK, 0 rows affected (0.000 sec)
 
 MariaDB [phpipam]>
@@ -61,17 +61,17 @@ MariaDB [phpipam]> INSERT INTO circuits
 ->     location2
 -> )
 -> SELECT
-->     CONCAT('CIR-', FLOOR(RAND(@seed + t1.id) * 1000000)), -- random circuit ID
-->     ELT(FLOOR(1 + (RAND(@seed + t1.id + 100) * 3)), 1, 2, 3), -- provider id: AT&T, Verizon, Chromecast
-->     ELT(FLOOR(1 + (RAND(@seed + t1.id + 200) * 3)), 'Active', 'Inactive', 'Reserved'), -- status
-->     ELT(FLOOR(1 + (RAND(@seed + t1.id + 300) * 3)), '500', '1000', '10000'), -- capacity
-->     DATE_ADD(CURDATE(), INTERVAL FLOOR(RAND(@seed + t1.id + 400) * 365 * 5) DAY), -- random future date
-->     CONCAT('$', FLOOR(20 + (RAND(@seed + t1.id + 500) * 481))), -- $20 - $500
-->     FLOOR(10000 + (RAND(@seed + t1.id + 600) * 99999999)), -- random 5-10 digit account number
-->     ELT(FLOOR(1 + (RAND(@seed + t1.id + 700) * 24)),
+->     CONCAT('CIR-', FLOOR(RAND(@populate + t1.id) * 1000000)), -- random circuit ID
+->     ELT(FLOOR(1 + (RAND(@populate + t1.id + 100) * 3)), 1, 2, 3), -- provider id: AT&T, Verizon, Chromecast
+->     ELT(FLOOR(1 + (RAND(@populate + t1.id + 200) * 3)), 'Active', 'Inactive', 'Reserved'), -- status
+->     ELT(FLOOR(1 + (RAND(@populate + t1.id + 300) * 3)), '500', '1000', '10000'), -- capacity
+->     DATE_ADD(CURDATE(), INTERVAL FLOOR(RAND(@populate + t1.id + 400) * 365 * 5) DAY), -- random future date
+->     CONCAT('$', FLOOR(20 + (RAND(@populate + t1.id + 500) * 481))), -- $20 - $500
+->     FLOOR(10000 + (RAND(@populate + t1.id + 600) * 99999999)), -- random 5-10 digit account number
+->     ELT(FLOOR(1 + (RAND(@populate + t1.id + 700) * 24)),
 ->         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
 ->         13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24), -- location1
-->     ELT(FLOOR(1 + (RAND(@seed + t1.id + 800) * 24)),
+->     ELT(FLOOR(1 + (RAND(@populate + t1.id + 800) * 24)),
 ->         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
 ->         13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24) -- location2
 -> FROM (

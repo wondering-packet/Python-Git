@@ -2,12 +2,15 @@ import requests
 import random
 import time
 import urllib3
+import json
 
 # Disable SSL warnings for lab
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-API_BASE_URL = "https://URL_ADDRESS/api/API_ID"
-API_TOKEN = "TOKEN"
+with open("/automation/secrets/phpipam.json", "r") as f:
+    secret = json.load(f)
+    API_BASE_URL = secret["API_BASE_URL"]
+    API_TOKEN = secret["API_TOKEN"]
 
 # Racks data
 racks = [
@@ -124,7 +127,7 @@ def add_device(session, device_data):
         return False, str(e)
 
 
-def seed_devices(num_devices=1200):
+def populate_devices(num_devices=1200):
     session = requests.Session()
     success_count = failure_count = skipped_count = 0
 
@@ -185,7 +188,7 @@ def seed_devices(num_devices=1200):
             print(f"⚠️ Skipped device {i}: No available rack space or IPs.")
 
         if i % 50 == 0:
-            print(f"🌿 Progress: {i}/{num_devices} devices seeded.")
+            print(f"🌿 Progress: {i}/{num_devices} devices populateed.")
             time.sleep(1)
 
     print(
@@ -193,4 +196,4 @@ def seed_devices(num_devices=1200):
 
 
 if __name__ == "__main__":
-    seed_devices(1200)
+    populate_devices(1200)
