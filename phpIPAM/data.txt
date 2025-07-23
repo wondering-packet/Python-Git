@@ -1,0 +1,228 @@
+MariaDB [phpipam]> SELECT id, name, size FROM racks ORDER BY id;
++----+--------------------------------+------+
+| id | name                           | size |
++----+--------------------------------+------+
+|  1 | AMER-East-DC1-Row8-Cab1        |   42 |
+|  2 | AMER-West-DC1-Row8-Cab1        |   42 |
+|  3 | Germany-DC1-Row8-Cab1          |   42 |
+|  4 | India-DC1-Row8-Cab1            |   45 |
+|  5 | AMER-East-DC1-Row8-Cab2        |   42 |
+|  6 | AMER-East-DC1-Row8-Cab4        |   42 |
+|  7 | AMER-West-DC1-Row8-Cab5        |   28 |
+|  8 | AP-Japan-DC1-Row2-Cab3         |   21 |
+|  9 | AP-Japan-DC2-Row5-Cab1         |   12 |
+| 10 | AP-Japan-DC1-Row7-Cab2         |   26 |
+| 11 | AP-Japan-DC3-Row3-Cab4         |    9 |
+| 12 | AP-Singapore-DC1-Row1-Cab2     |   40 |
+| 13 | AP-Singapore-DC2-Row4-Cab1     |   45 |
+| 14 | AP-Singapore-DC2-Row2-Cab3     |   16 |
+| 15 | AP-Singapore-DC3-Row6-Cab1     |   19 |
+| 16 | AP-Australia-DC1-Row3-Cab3     |   37 |
+| 17 | AP-Australia-DC1-Row8-Cab2     |   42 |
+| 18 | AP-Australia-DC2-Row5-Cab4     |   12 |
+| 19 | AP-Australia-DC3-Row2-Cab1     |   46 |
+| 20 | AP-SouthKorea-DC2-Row4-Cab2    |   25 |
+| 21 | AP-SouthKorea-DC1-Row6-Cab3    |   20 |
+| 22 | AP-SouthKorea-DC3-Row3-Cab4    |   18 |
+| 23 | AP-SouthKorea-DC1-Row1-Cab1    |   22 |
+| 24 | AP-HongKong-DC1-Row2-Cab4      |   47 |
+| 25 | AP-HongKong-DC2-Row3-Cab3      |   42 |
+| 26 | AP-HongKong-DC3-Row5-Cab1      |   24 |
+| 27 | AP-HongKong-DC1-Row6-Cab2      |   25 |
+| 28 | EMEA-Italy-DC1-Row4-Cab1       |   44 |
+| 29 | EMEA-Italy-DC2-Row2-Cab3       |   20 |
+| 30 | EMEA-Italy-DC3-Row3-Cab2       |   38 |
+| 31 | EMEA-Italy-DC1-Row1-Cab4       |   42 |
+| 32 | EMEA-Spain-DC1-Row3-Cab3       |   10 |
+| 33 | EMEA-Spain-DC2-Row5-Cab2       |   37 |
+| 34 | EMEA-Spain-DC3-Row4-Cab1       |   28 |
+| 35 | EMEA-Spain-DC1-Row2-Cab4       |   22 |
+| 36 | EMEA-France-DC1-Row2-Cab2      |   17 |
+| 37 | EMEA-France-DC2-Row3-Cab3      |   13 |
+| 38 | EMEA-France-DC3-Row4-Cab1      |   45 |
+| 39 | EMEA-France-DC1-Row5-Cab4      |   18 |
+| 40 | EMEA-Netherlands-DC2-Row4-Cab3 |   27 |
+| 41 | EMEA-Netherlands-DC1-Row2-Cab2 |   34 |
+| 42 | EMEA-Netherlands-DC3-Row3-Cab1 |   43 |
+| 43 | EMEA-Netherlands-DC1-Row5-Cab4 |   25 |
+| 44 | EMEA-Sweden-DC1-Row3-Cab2      |   28 |
+| 45 | EMEA-Sweden-DC2-Row1-Cab3      |   19 |
+| 46 | EMEA-Sweden-DC3-Row4-Cab4      |   43 |
+| 47 | EMEA-Sweden-DC1-Row2-Cab1      |   30 |
+| 48 | EMEA-Norway-DC2-Row3-Cab2      |   13 |
+| 49 | EMEA-Norway-DC1-Row5-Cab3      |    9 |
+| 50 | EMEA-Norway-DC3-Row2-Cab1      |   40 |
+| 51 | EMEA-Norway-DC1-Row4-Cab4      |   43 |
+| 52 | EMEA-Poland-DC1-Row2-Cab2      |    9 |
+| 53 | EMEA-Poland-DC2-Row3-Cab3      |   29 |
+| 54 | EMEA-Poland-DC3-Row4-Cab1      |   28 |
+| 55 | EMEA-Poland-DC1-Row5-Cab4      |   47 |
+| 56 | AMER-Canada-DC1-Row2-Cab3      |   25 |
+| 57 | AMER-Canada-DC2-Row1-Cab4      |   16 |
+| 58 | AMER-Canada-DC3-Row3-Cab2      |   36 |
+| 59 | AMER-Canada-DC1-Row4-Cab1      |   47 |
+| 60 | AMER-Mexico-DC1-Row1-Cab3      |   40 |
+| 61 | AMER-Mexico-DC2-Row3-Cab2      |    9 |
+| 62 | AMER-Mexico-DC3-Row2-Cab1      |   39 |
+| 63 | AMER-Mexico-DC1-Row4-Cab4      |   41 |
+| 64 | AMER-Brazil-DC2-Row3-Cab3      |   38 |
+| 65 | AMER-Brazil-DC1-Row2-Cab2      |   21 |
+| 66 | AMER-Brazil-DC3-Row1-Cab1      |   23 |
+| 67 | AMER-Brazil-DC1-Row4-Cab4      |   46 |
+| 68 | AMER-Argentina-DC1-Row3-Cab2   |   34 |
+| 69 | AMER-Argentina-DC2-Row2-Cab3   |   24 |
+| 70 | AMER-Argentina-DC3-Row1-Cab4   |    8 |
+| 71 | AMER-Argentina-DC1-Row4-Cab1   |   44 |
+| 72 | AMER-Chile-DC1-Row1-Cab2       |   28 |
+| 73 | AMER-Chile-DC2-Row3-Cab3       |   38 |
+| 74 | AMER-Chile-DC3-Row2-Cab4       |   19 |
+| 75 | AMER-Chile-DC1-Row4-Cab1       |   16 |
+| 76 | AMER-Peru-DC1-Row2-Cab2        |   12 |
+| 77 | AMER-Peru-DC2-Row3-Cab3        |    8 |
+| 78 | AMER-Peru-DC3-Row1-Cab4        |   35 |
+| 79 | AMER-Peru-DC1-Row4-Cab1        |   23 |
+| 80 | AMER-Colombia-DC1-Row3-Cab3    |   43 |
+| 81 | AMER-Colombia-DC2-Row2-Cab2    |   19 |
+| 82 | AMER-Colombia-DC3-Row1-Cab1    |   40 |
+| 83 | AMER-Colombia-DC1-Row4-Cab4    |   12 |
+| 84 | AMER-Uruguay-DC1-Row1-Cab2     |   15 |
+| 85 | AMER-Uruguay-DC2-Row3-Cab3     |   32 |
+| 86 | AMER-Uruguay-DC3-Row2-Cab4     |   28 |
+| 87 | AMER-Uruguay-DC1-Row4-Cab1     |   34 |
+
+
+MariaDB [phpipam]> SELECT id, name FROM locations ORDER BY id;
++----+------------------+
+| id | name             |
++----+------------------+
+|  1 | AMER-East        |
+|  2 | AMER-West        |
+|  3 | EMEA-Germany     |
+|  4 | AP-India         |
+|  5 | AP-Japan         |
+|  6 | AP-Singapore     |
+|  7 | AP-Australia     |
+|  8 | AP-SouthKorea    |
+|  9 | AP-HongKong      |
+| 10 | EMEA-Italy       |
+| 11 | EMEA-Spain       |
+| 12 | EMEA-France      |
+| 13 | EMEA-Netherlands |
+| 14 | EMEA-Sweden      |
+| 15 | EMEA-Norway      |
+| 16 | EMEA-Poland      |
+| 17 | AMER-Canada      |
+| 18 | AMER-Mexico      |
+| 19 | AMER-Brazil      |
+| 20 | AMER-Argentina   |
+| 21 | AMER-Chile       |
+| 22 | AMER-Peru        |
+| 23 | AMER-Colombia    |
+| 24 | AMER-Uruguay     |
++----+------------------+
+
+location_networks = {
+    1: "172.16.0.0/16",
+    2: "172.17.0.0/16",
+    3: "172.18.0.0/16",
+    4: "172.19.0.0/16",
+    5: "172.20.0.0/16",
+    6: "172.21.0.0/16",
+    7: "172.22.0.0/16",
+    8: "172.23.0.0/16",
+    9: "172.24.0.0/16",
+    10: "172.25.0.0/16",
+    11: "172.26.0.0/16",
+    12: "172.27.0.0/16",
+    13: "172.28.0.0/16",
+    14: "172.29.0.0/16",
+    15: "172.30.0.0/16",
+    16: "172.31.0.0/16"
+}
+
+racks = [
+    {"id": 1, "name": "AMER-E-DC1-R8C1", "size": 42, "location": 1},
+    {"id": 2, "name": "AMER-W-DC1-R8C1", "size": 42, "location": 2},
+    {"id": 3, "name": "EMEA-DE-DC1-R8C1", "size": 42, "location": 3},
+    {"id": 4, "name": "AP-IN-DC1-R8C1", "size": 45, "location": 4},
+    {"id": 5, "name": "AMER-E-DC1-R8C2", "size": 42, "location": 1},
+    {"id": 6, "name": "AMER-E-DC1-R8C4", "size": 42, "location": 1},
+    {"id": 7, "name": "AMER-W-DC1-R8C5", "size": 28, "location": 2},
+    {"id": 8, "name": "AP-JP-DC1-R2C3", "size": 21, "location": 5},
+    {"id": 9, "name": "AP-JP-DC2-R5C1", "size": 12, "location": 5},
+    {"id": 10, "name": "AP-JP-DC1-R7C2", "size": 26, "location": 5},
+    {"id": 11, "name": "AP-JP-DC3-R3C4", "size": 9, "location": 5},
+    {"id": 12, "name": "AP-SG-DC1-R1C2", "size": 40, "location": 6},
+    {"id": 13, "name": "AP-SG-DC2-R4C1", "size": 45, "location": 6},
+    {"id": 14, "name": "AP-SG-DC2-R2C3", "size": 16, "location": 6},
+    {"id": 15, "name": "AP-SG-DC3-R6C1", "size": 19, "location": 6},
+    {"id": 16, "name": "AP-AU-DC1-R3C3", "size": 37, "location": 7},
+    {"id": 17, "name": "AP-AU-DC1-R8C2", "size": 42, "location": 7},
+    {"id": 18, "name": "AP-AU-DC2-R5C4", "size": 12, "location": 7},
+    {"id": 19, "name": "AP-AU-DC3-R2C1", "size": 46, "location": 7},
+    {"id": 20, "name": "AP-KR-DC2-R4C2", "size": 25, "location": 8},
+    {"id": 21, "name": "AP-KR-DC1-R6C3", "size": 20, "location": 8},
+    {"id": 22, "name": "AP-KR-DC3-R3C4", "size": 18, "location": 8},
+    {"id": 23, "name": "AP-KR-DC1-R1C1", "size": 22, "location": 8},
+    {"id": 24, "name": "AP-HK-DC1-R2C4", "size": 47, "location": 9},
+    {"id": 25, "name": "AP-HK-DC2-R3C3", "size": 42, "location": 9},
+    {"id": 26, "name": "AP-HK-DC3-R5C1", "size": 24, "location": 9},
+    {"id": 27, "name": "AP-HK-DC1-R6C2", "size": 25, "location": 9},
+    {"id": 28, "name": "EMEA-IT-DC1-R4C1", "size": 44, "location": 10},
+    {"id": 29, "name": "EMEA-IT-DC2-R2C3", "size": 20, "location": 10},
+    {"id": 30, "name": "EMEA-IT-DC3-R3C2", "size": 38, "location": 10},
+    {"id": 31, "name": "EMEA-IT-DC1-R1C4", "size": 42, "location": 10},
+    {"id": 32, "name": "EMEA-ES-DC1-R3C3", "size": 10, "location": 11},
+    {"id": 33, "name": "EMEA-ES-DC2-R5C2", "size": 37, "location": 11},
+    {"id": 34, "name": "EMEA-ES-DC3-R4C1", "size": 28, "location": 11},
+    {"id": 35, "name": "EMEA-ES-DC1-R2C4", "size": 22, "location": 11},
+    {"id": 36, "name": "EMEA-FR-DC1-R2C2", "size": 17, "location": 12},
+    {"id": 37, "name": "EMEA-FR-DC2-R3C3", "size": 13, "location": 12},
+    {"id": 38, "name": "EMEA-FR-DC3-R4C1", "size": 45, "location": 12},
+    {"id": 39, "name": "EMEA-FR-DC1-R5C4", "size": 18, "location": 12},
+    {"id": 40, "name": "EMEA-NL-DC2-R4C3", "size": 27, "location": 13},
+    {"id": 41, "name": "EMEA-NL-DC1-R2C2", "size": 34, "location": 13},
+    {"id": 42, "name": "EMEA-NL-DC3-R3C1", "size": 43, "location": 13},
+    {"id": 43, "name": "EMEA-NL-DC1-R5C4", "size": 25, "location": 13},
+    {"id": 44, "name": "EMEA-SE-DC1-R3C2", "size": 28, "location": 14},
+    {"id": 45, "name": "EMEA-SE-DC2-R1C3", "size": 19, "location": 14},
+    {"id": 46, "name": "EMEA-SE-DC3-R4C4", "size": 43, "location": 14},
+    {"id": 47, "name": "EMEA-SE-DC1-R2C1", "size": 30, "location": 14},
+    {"id": 48, "name": "EMEA-NO-DC2-R3C2", "size": 13, "location": 15},
+    {"id": 49, "name": "EMEA-NO-DC1-R5C3", "size": 9, "location": 15},
+    {"id": 50, "name": "EMEA-NO-DC3-R2C1", "size": 40, "location": 15},
+    {"id": 51, "name": "EMEA-NO-DC1-R4C4", "size": 43, "location": 15},
+    {"id": 52, "name": "EMEA-PL-DC1-R2C2", "size": 9, "location": 16},
+    {"id": 53, "name": "EMEA-PL-DC2-R3C3", "size": 29, "location": 16},
+    {"id": 54, "name": "EMEA-PL-DC3-R4C1", "size": 28, "location": 16},
+    {"id": 55, "name": "EMEA-PL-DC1-R5C4", "size": 47, "location": 16}
+]
+
+# Append the network block info
+for rack in racks:
+    rack["network_block"] = location_networks.get(rack["location"])
+
+
+Commands:
+
+DELETE FROM vlans;
+DELETE FROM subnets WHERE description LIKE '%Seeded%';
+
+SELECT id, subnet, mask, description FROM subnets WHERE description LIKE 'Seeded % subnet for%';
+
+SELECT
+->     d.hostname,
+->     INET_NTOA(d.ip_addr) AS ip_address,
+->     d.description,
+->     l.name AS location_name,
+->     r.name AS rack_name,
+->     r.size AS rack_size,
+->     d.rack_start AS rack_start_position
+-> FROM
+->     devices d
+-> LEFT JOIN
+->     locations l ON d.location = l.id
+-> LEFT JOIN
+->     racks r ON d.rack = r.id
+-> ORDER BY
+->     d.hostname ASC;
