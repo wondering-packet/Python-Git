@@ -11,7 +11,7 @@ https://NETBOX_URL/api/
 
 my Netbox url is: netbox.intra.slicesoftech.net
 
-you will see the available API you can call at root:
+you will see the available API app labels you can call at root:
 
 GET /api/
 HTTP 200 OK
@@ -35,7 +35,7 @@ Vary: Accept
 }
 
 b)
-for instance if you want information regarding tenancy (called app) then you will goto:
+for instance if you want information regarding tenancy app then you will goto:
 https://netbox.intra.slicesoftech.net/api/tenancy/
 
 GET /api/tenancy/
@@ -54,7 +54,7 @@ Vary: Accept
 }
 
 c)
-Now suppose you want information on tenants, you goto "tenants" (called endpoint):
+Now suppose you want information on tenants, you goto tenants url (called endpoint):
 https://netbox.intra.slicesoftech.net/api/tenancy/tenants/
 
 GET /api/tenancy/tenants/
@@ -102,7 +102,7 @@ Vary: Accept
 you can now see actual data in this API call (total 3 tenants are there).
 To look into a specific tenant, you pass in the tenant specific lookup fields in your API call.
 
-For example:
+here is an example code:
 
 # initiliaze netbox object
 nb = pynetbox.api(NETBOX_URL, token=API_TOKEN)
@@ -115,6 +115,10 @@ nb = pynetbox.api(NETBOX_URL, token=API_TOKEN)
 
 response = nb.tenancy.tenants.get(name="WP-Corp")
 
+print(response.rack_count)      # output: 40
+print(response.site_count)      # output: 12
+
+Bonus:
 # dir(response) lets you view what can be pulled from this tenant.
 
 pprint(dir(response))
@@ -137,15 +141,12 @@ here is a truncated output:
  'vlan_count',
  """
 
-print(response.rack_count)      # output: 40
-print(response.site_count)      # output: 12
-
 2. What are the methods available in Netbox?
 
 a)
 get(): makes a GET call.
 In my above exmaple, you can see I used a get() method - that's a method used to fetch info.
-Fetches a single objetc (you can pass on multiple criterias though).
+Fetches a single objetc (you can pass on multiple match criterias though).
 Errors out if multiple objects are returned.
 
 response = nb.tenancy.tenants.get(name="WP-Corp", id=4)
@@ -159,7 +160,10 @@ WP corp
 b)
 filter(): makes a GET call.
 Returns multiple objects matching your filter.
-You can pass ony multip filters.
+You can pass on multiple match criterias just like get().
+Note that, you should only use certain lookup fields to pass.
+e.g. using name="WP-Corp" doens't make sense since names are unique & will only return one value.
+so use lookup fields which can actually return multiple values. e.g. tag.
 
 response = nb.tenancy.tenants.filter(group_id=1, tag="test")
 tenants = list(response)
@@ -173,7 +177,7 @@ WP lab
 
 c)
 all(): makes a GET call.
-returns all objects in the endpoint.
+returns all objects in the endpoint. this can then be iterated using a list & for loop.
 
 response = nb.tenancy.tenants.all()
 tenants = list(response)

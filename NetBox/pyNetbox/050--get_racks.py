@@ -31,7 +31,6 @@ for r in response:
     print(r)
 pprint(dir(response))
 print("\n@@3\n")
-pprint(nb.ipam.ip_addresses.choices())
 # data = nb.tenancy.tenants.filter(name="WP-Corp")
 # response = list(data)
 # pprint(dir(response))
@@ -39,3 +38,9 @@ pprint(nb.ipam.ip_addresses.choices())
 #     print(r.rack_count)
 
 # pprint(dir(nb.tenancy.tenants))
+response = nb.tenancy.tenants.filter(name="WP-Corp")
+pprint(response)
+for r in response:
+    print(r.description)
+pprint(dir(response))
+print("\n@@4\n")
