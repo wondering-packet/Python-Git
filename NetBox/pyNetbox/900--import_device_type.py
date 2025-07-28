@@ -1,6 +1,11 @@
+# i tried the official device importer from the git
+# but it doesn't work for self signed certs which is what i am using.
+# so wrote ths script with the help of chatgpt to import device types.
+
 import re
 import pynetbox
 import yaml
+import json
 import os
 import urllib3
 

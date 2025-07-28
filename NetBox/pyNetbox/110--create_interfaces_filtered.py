@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+# used chatgpt to quickly build this simple script.
+# this script creates 4+1(mgmt) interfaces for routers & 24+1(mgmt) interfaces for switches.
+# i am using it to feed in dummy data.
 
 import pynetbox
 import json
@@ -17,20 +19,24 @@ with open("/automation/secrets/netbox.json", "r") as f:
 nb = pynetbox.api(NETBOX_URL, token=API_TOKEN)
 nb.http_session.verify = False  # Ignore SSL verification
 
-# Function to get all devices filtered by tag if needed
+
+def get_site_id_by_name(site_name):
+    site = nb.dcim.sites.get(name=site_name)
+    if site is None:
+        print("Site not found")
+        return
+    else:
+        return site.id
+
+# Function to get all devices for a site filtered by tag if needed
 
 
-def get_devices():
+def get_devices(site_name):
     # Fetch all devices for which you want to create interfaces
     # You may add filters here if needed, e.g., tag='automation'
-    return nb.dcim.devices.all()
+    site_id = get_site_id_by_name(site_name)
+    return nb.dcim.devices.filter(site_id=site_id)
 
-# Function to get interfaces tagged with 'automation'
-
-
-def get_automation_interfaces():
-    # This now works since the 'automation' tag is created and attached
-    return nb.dcim.interfaces.filter(tag='automation')
 
 # Function to create interfaces on a device
 
@@ -70,7 +76,7 @@ def create_interfaces_for_device(device, automation_tag_id):
 
     elif "SW" in device.name:
         # Create 24 switchport interfaces
-        for i in range(1, 25):
+        for i in range(1, 16):
             iface_name = f"Gig0/{i}"
             # Check if interface already exists
             existing = nb.dcim.interfaces.filter(
@@ -86,6 +92,26 @@ def create_interfaces_for_device(device, automation_tag_id):
                 })
                 print(f"✅ Created {iface_name} on {device.name}")
 
+    elif "FW" in device.name:
+        # Create 24 switchport interfaces
+        for i in range(1, 8):
+            iface_name = f"Gig0/{i}"
+            # Check if interface already exists
+            existing = nb.dcim.interfaces.filter(
+                device_id=device.id, name=iface_name)
+            if not existing:
+                nb.dcim.interfaces.create({
+                    "device": device.id,
+                    "name": iface_name,
+                    "type": "1000base-t",
+                    "enabled": True,
+                    "description": f"{device.name} {iface_name}",
+                    "tags": [automation_tag_id]
+                })
+                print(f"✅ Created {iface_name} on {device.name}")
+
+    # you can continue to do this for other device types you may have.
+
 # Main logic
 
 
@@ -96,19 +122,14 @@ def main():
         print("❌ 'automation' tag not found in NetBox. Please create it first.")
         exit(1)
 
-    devices = get_devices()
+    site_name = "AMER-E"
+    devices = get_devices(site_name)
     print(f"🔹 Found {len(devices)} devices to process.")
 
     for device in devices:
         create_interfaces_for_device(device, automation_tag_id)
 
     print("✅ Interface creation completed.")
-
-    # Optional: list created interfaces tagged with 'automation'
-    interfaces = get_automation_interfaces()
-    print(f"🔹 Interfaces tagged with 'automation': {len(interfaces)}")
-    for iface in interfaces:
-        print(f"- {iface.device.name} {iface.name}")
 
 
 if __name__ == "__main__":
