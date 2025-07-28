@@ -1,24 +1,27 @@
 For detailed instructions, visit the official pynetbox documentation:
 [https://pynetbox.readthedocs.io/](https://pynetbox.readthedocs.io/)
 
-What I have below are some instructions I found useful for myself while working with the `pynetbox` module.
+Below, I am summarizing the API structure/schema, various calls & methods you can utilize with the `pynetbox` module. These are intended to be a quick reference for myself & help anyone new to quickly get started with `pynetbox`.
 
 ---
 
 ## 1. Figuring Out the Right API Call
 
-Understanding the NetBox API structure is key to using `pynetbox` effectively. The API follows a logical hierarchy that mirrors the NetBox UI.
+First thing you need to do is figure out what you can do!
 
-### a) Discovering Top-Level Apps
+* **Pull interfaces:** Figure out the API call for the `interfaces` endpoint (e.g., `nb.dcim.interfaces`).
+* **Pull circuits:** Figure out the API call for the `circuits` endpoint (e.g., `nb.circuits.circuits`).
+* **And so on...** Apply the same logic for other object types like `devices`, `racks`, `IP addresses`, etc.
 
-Start by exploring the root of your NetBox API:
+So let's start with the root of netbox API.
 
+### a)
+start from:
 `https://NETBOX_URL/api/`
 
-For instance, with my NetBox URL: `netbox.intra.slicesoftech.net`, I would visit:
-`https://netbox.intra.slicesoftech.net/api/`
+my Netbox url is: `netbox.intra.slicesoftech.net`
 
-You will see the available API app labels you can call at this root:
+you will see the available API app labels you can call at root:
 
 ```http
 GET /api/
@@ -43,9 +46,9 @@ Vary: Accept
 }
 ````
 
-### b) Diving Into a Specific App
+### b)
 
-If you want information regarding the `tenancy` app, you would then navigate to its API endpoint:
+for instance if you want information regarding tenancy app then you will goto:
 `https://netbox.intra.slicesoftech.net/api/tenancy/`
 
 ```http
@@ -65,9 +68,9 @@ Vary: Accept
 }
 ```
 
-### c) Accessing Specific Endpoints (Objects)
+### c)
 
-Now, suppose you want information on `tenants`. You navigate to the `tenants` URL (which is often called an "endpoint"):
+Now suppose you want information on tenants, you goto tenants url (called endpoint):
 `https://netbox.intra.slicesoftech.net/api/tenancy/tenants/`
 
 ```http
@@ -108,51 +111,47 @@ Vary: Accept
             "cluster_count": 0
         },
         {},
-        ...
+        ....
         {}
     ]
 }
 ```
 
-You can now see actual data in this API call (total 3 tenants are there). To look into a specific tenant, you pass in the tenant-specific lookup fields in your API call.
+you can now see actual data in this API call (total 3 tenants are there).
+To look into a specific tenant, you pass in the tenant specific lookup fields in your API call.
 
-Here is an example `pynetbox` code:
+here is an example code:
 
 ```python
+# initiliaze netbox object
 import pynetbox
 from pprint import pprint
 
-# Initialize netbox object
-# Replace NETBOX_URL and API_TOKEN with your actual values
-NETBOX_URL = "[https://netbox.intra.slicesoftech.net](https://netbox.intra.slicesoftech.net)"
-API_TOKEN = "YOUR_NETBOX_API_TOKEN" # Always keep your token secure!
-
+# Assuming NETBOX_URL and API_TOKEN are defined elsewhere or passed in
 nb = pynetbox.api(NETBOX_URL, token=API_TOKEN)
 
-# Storing the response. Notice the path - this matches with our API path.
-# We have passed "name" as a lookup field to identify the tenant we are looking for.
-# Similarly, you can use other fields such as description, id, or slug.
-# Note that you cannot use just any field to ID. E.g., 'vlan_count' comes from
-# operational data, so it cannot be used as an ID; it's not a lookup field in Netbox.
+# storing the response. notice the path - this matches with our API path.
+# we have passed "name" as a lookup field to identify the tenant we are looking for.
+# similarily you can use other field such as description, id or slug.
+# note that you cannot use just any field to ID. e.g. vlan_count comes from operations data
+# so it cannot be used as an ID; it's not a lookup field in Netbox.
+
 response = nb.tenancy.tenants.get(name="WP-Corp")
 
-if response:
-    print(f"Rack Count for WP-Corp: {response.rack_count}")      # output: 40
-    print(f"Site Count for WP-Corp: {response.site_count}")      # output: 12
-else:
-    print("Tenant 'WP-Corp' not found.")
+print(response.rack_count)      # output: 40
+print(response.site_count)      # output: 12
+```
 
-# Bonus:
-# dir(response) lets you view what can be pulled from this tenant.
-print("\nAvailable attributes for the tenant object:")
+Bonus:
+`dir(response)` lets you view what can be pulled from this tenant.
+
+```python
 pprint(dir(response))
 ```
 
-Truncated output of `pprint(dir(response))`:
-
 ```
-[
- ...,
+"""
+here is a truncated output:
  'ipaddress_count',
  'last_updated',
  'name',
@@ -168,149 +167,110 @@ Truncated output of `pprint(dir(response))`:
  'url',
  'virtualmachine_count',
  'vlan_count',
- ...
-]
+ """
 ```
 
-## 2\. Common Methods Available in `pynetbox`
+## 2\. What are the methods available in Netbox?
 
-The `pynetbox` module provides convenient methods that map directly to standard REST API operations.
+### a) `get()`: makes a GET call.
 
-### a) `get()`: Fetch a Single Object (GET Call)
-
-  * Fetches a single object matching your criteria.
-  * Errors out if multiple objects are returned (use `filter()` for multiple results).
-  * You can pass on multiple match criteria.
-
-<!-- end list -->
+In my above exmaple, you can see I used a `get()` method - that's a method used to fetch info.
+Fetches a single object (you can pass on multiple match criterias though).
+Errors out if multiple objects are returned.
 
 ```python
-# Example of 'get()'
-response = nb.tenancy.tenants.get(name="WP-Corp", id=4) # Multiple criteria
-# response = nb.tenancy.tenants.get(name="WP-Corp") # Single criterion
+response = nb.tenancy.tenants.get(name="WP-Corp", id=4)
+# response = nb.tenancy.tenants.get(name="WP-Corp")
 
-if response:
-    print(f"Description of tenant: {response.description}")
-# Output:
+print(response.description)
+
+# output:
 # WP corp
 ```
 
-### b) `filter()`: Fetch Multiple Objects (GET Call)
+### b) `filter()`: makes a GET call.
 
-  * Returns a list of objects matching your filter.
-  * You can pass on multiple match criteria, just like `get()`.
-  * **Note:** You should only use certain lookup fields to pass. For example, using `name="WP-Corp"` doesn't make sense if names are unique, as it will only return one value. Use lookup fields that can actually return multiple values (e.g., `tag`, `group_id`).
-
-<!-- end list -->
+Returns multiple objects matching your filter.
+You can pass on multiple match criterias just like `get()`.
+Note that, you should only use certain lookup fields to pass.
+e.g. using `name="WP-Corp"` doens't make sense since names are unique & will only return one value.
+so use lookup fields which can actually return multiple values. e.g. tag.
 
 ```python
-# Example of 'filter()'
 response = nb.tenancy.tenants.filter(group_id=1, tag="test")
-tenants = list(response) # Convert the generator to a list to iterate multiple times
+tenants = list(response)
 
-print("\nTenants found by filter:")
 for each_tenant in tenants:
     print(each_tenant.description)
-# Output:
+
+# output:
 # WP corp
 # WP lab
 ```
 
-### c) `all()`: Fetch All Objects (GET Call)
+### c) `all()`: makes a GET call.
 
-  * Returns all objects from the specified endpoint.
-  * This can then be iterated using a `list` conversion and a `for` loop.
-
-<!-- end list -->
+returns all objects in the endpoint. this can then be iterated using a list & for loop.
 
 ```python
-# Example of 'all()'
 response = nb.tenancy.tenants.all()
 tenants = list(response)
 
-print("\nAll tenants:")
 for each_tenant in tenants:
     print(each_tenant.description)
-# Output:
+
+# output:
 # WP corp
 # WP lab
 # WP retail
 ```
 
-### d) `create()`: Create a New Object (POST Call)
+### d) `create()`: makes a POST call.
 
-  * Makes a POST call to create a new object.
-
-<!-- end list -->
+creates new object.
 
 ```python
-# Example of 'create()'
-new_tenant_data = {
+new_tenant = {
     "name": "NewCorp",
     "slug": "newcorp",
     "description": "Created via pynetbox"
 }
-try:
-    response = nb.tenancy.tenants.create(**new_tenant_data)
-    print(f"\nCreated new tenant: {response.name} (ID: {response.id})")
-except pynetbox.RequestError as e:
-    print(f"\nError creating tenant: {e.error}")
+response = nb.tenancy.tenants.create(**new_tenant)
 ```
 
-### e) `update()`: Update an Existing Object (PATCH or PUT Call)
+### e) `update()`: makes a PATCH or PUT call. typically PATCH.
 
-  * Updates fields on an existing object. Typically makes a PATCH call by default.
-  * You pass each field as a `Key:Value` pair in a dictionary. You can pass multiple fields.
-
-<!-- end list -->
+updates a field on an existing object.
 
 ```python
-# Example of 'update()'
-try:
-    tenant_to_update = nb.tenancy.tenants.get(name="NewCorp") # Using the tenant created above
-    if tenant_to_update:
-        # You will pass each field as a Key:Value pair in a dictionary.
-        # You can pass multiple fields.
-        tenant_to_update.update({"description": "NewCorp updated via pynetbox"})
-        print(f"\nUpdated tenant '{tenant_to_update.name}'. New description: {tenant_to_update.description}")
-    else:
-        print("\nTenant 'NewCorp' not found for update.")
-except pynetbox.RequestError as e:
-    print(f"\nError updating tenant: {e.error}")
+tenant = nb.tenancy.tenants.get(name="NewCorp2")
+
+# you will pass each field as a Key:Value pair in a dictionary.
+# you can pass multiple fields.
+tenant.update({"description": "corp 2"})
 ```
 
-### f) `delete()`: Delete an Object (DELETE Call)
+### f) `delete()`: makes a DELETE call.
 
-  * Deletes an existing object.
-
-<!-- end list -->
+deletes an object.
 
 ```python
-# Example of 'delete()'
-try:
-    tenant_to_delete = nb.tenancy.tenants.get(name="NewCorp") # Using the tenant we just updated
-    if tenant_to_delete:
-        tenant_to_delete.delete()
-        print(f"\nDeleted tenant: {tenant_to_delete.name}")
-    else:
-        print("\nTenant 'NewCorp' not found for deletion.")
-except pynetbox.RequestError as e:
-    print(f"\nError deleting tenant: {e.error}")
+tenant = nb.tenancy.tenants.get(name="NewCorp2")
+tenant.delete()
 ```
 
-### g) `choices()`: Get Field Choices (GET Call)
+### g) `choices()`: makes a GET call.
 
-  * Returns all available choices for a field from an endpoint as a dictionary.
-  * It's useful when you are trying to determine what valid choices are available for a field (e.g., `status` could be "Active", "Planned", "Staging" etc.). Without `choices()`, you wouldn't know what values you can use for `create()` or `update()`.
-
-<!-- end list -->
+returns all choices from an endpoint as a dictionary.
+it is usefull when you are trying to determine what choices are available for a field.
+e.g. status could be "Active", "Planned", "Staging" etc.
+without the `choices()`, you wouldn't know what you can PUT.
 
 ```python
-# Example of 'choices()'
-response_choices = nb.dcim.sites.choices()
-print("\nChoices for DCIM Sites:")
-pprint(response_choices)
-# Output:
+response = nb.dcim.sites.choices()
+pprint(response)
+
+# output:
 
 # {'status': [{'display_name': 'Planned', 'value': 'planned'},
 #             {'display_name': 'Staging', 'value': 'staging'},
@@ -319,20 +279,20 @@ pprint(response_choices)
 #             {'display_name': 'Retired', 'value': 'retired'}]}
 ```
 
-## 3\. What Methods Can Be Called Upon Each Endpoint?
+## 3\. What methods can be called upon each endpoint?
 
-You can dynamically inspect the available methods (like `get`, `filter`, `create`, etc.) on any `pynetbox` endpoint object using the `dir()` function.
+`print(dir(ENDPOINT))`
+
+e.g.
 
 ```python
-print("\nMethods available for `nb.tenancy.tenants` endpoint:")
 pprint(dir(nb.tenancy.tenants))
 ```
 
-Example truncated output:
-
 ```
+# output:
 [
- ...,
+ ...
  'all',
  'choices',
  'create',
@@ -341,26 +301,23 @@ Example truncated output:
  'get',
  'update',
  ...
-]
+ ]
 ```
 
-## 4\. How to Know What Fields to Pass for POST or Other Methods?
+## 4\. How do i know what fields i need to pass on for POST or other methods?
 
-The NetBox API schema (Swagger/OpenAPI UI) is your best friend for this\!
-
-Visit the API documentation at:
+Goto the API docs.
 `https://NETBOX_URL/api/schema/swagger-ui`
 
-For example: `https://netbox.intra.slicesoftech.net/api/schema/swagger-ui`
+### a) Search for the endpoint you are working with e.g. `racks`.
 
-Follow these steps:
+### b) Look at the POST call for this endpoint.
 
-a)  **Search for the endpoint** you are working with (e.g., `racks`).
-b)  Look at the **POST call** section for this endpoint.
-c)  Examine the **Request body**. Anything marked with an asterisk (`*`) is a **mandatory field**.
-d)  (Optional) You can also see the **Response body** to understand what will be returned after making the API call.
+### c) Look at the Request body. anything marked with `*` is a mandatory field.
 
-You can also view the details for GET, PUT, PATCH, and DELETE calls for each endpoint on this page.
+### d) Optional, you can also see the Response body to see what will be returned after making the call.
+
+You can also see GET, PUT, PATCH, and DELETE calls here.
 
 ```
 ```
