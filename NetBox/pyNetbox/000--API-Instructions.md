@@ -15,7 +15,7 @@ First thing you need to do is figure out what you can do!
 
 So let's start with the root of netbox API.
 
-### a)
+### a) Root
 start from:
 `https://NETBOX_URL/api/`
 
@@ -46,7 +46,7 @@ Vary: Accept
 }
 ````
 
-### b)
+### b) Apps
 
 for instance if you want information regarding tenancy app then you will goto:
 `https://netbox.intra.slicesoftech.net/api/tenancy/`
@@ -68,7 +68,7 @@ Vary: Accept
 }
 ```
 
-### c)
+### c) Endpoints
 
 Now suppose you want information on tenants, you goto tenants url (called endpoint):
 `https://netbox.intra.slicesoftech.net/api/tenancy/tenants/`
@@ -142,7 +142,8 @@ print(response.rack_count)      # output: 40
 print(response.site_count)      # output: 12
 ```
 
-Bonus:
+### d) Bonus:
+
 `dir(response)` lets you view what can be pulled from this tenant.
 
 ```python
@@ -309,15 +310,12 @@ pprint(dir(nb.tenancy.tenants))
 Goto the API docs.
 `https://NETBOX_URL/api/schema/swagger-ui`
 
-### a) Search for the endpoint you are working with e.g. `racks`.
+#### a) Search for the endpoint you are working with e.g. `racks`.
 
-### b) Look at the POST call for this endpoint.
+#### b) Look at the POST call for this endpoint.
 
-### c) Look at the Request body. anything marked with `*` is a mandatory field.
+#### c) Look at the Request body. anything marked with `*` is a mandatory field.
 
-### d) Optional, you can also see the Response body to see what will be returned after making the call.
+#### d) Optional, you can also see the Response body to see what will be returned after making the call.
 
 You can also see GET, PUT, PATCH, and DELETE calls here.
-
-```
-```
