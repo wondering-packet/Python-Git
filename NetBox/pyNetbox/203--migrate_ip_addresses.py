@@ -72,6 +72,8 @@ def create_ip(ip):
             return {"ip": address, "result": "failure", "comment": "could not find subnet ID"}
         address = f"{ip_address}/{subnet_id}"
         if autodiscovered_ip in ip["description"].lower():
+            with counter_lock:
+                ip_counters["failed"] += 1
             return {"ip": address, "result": "failure", "comment": "autodiscovered IP skipped"}
         if ip["status"] not in valid_statuses:
             # print(
@@ -134,7 +136,7 @@ with open(IP_ADDRESS_FILE, "r") as f:
                 futures.append(future_ip)
             for future in as_completed(futures):
                 result = future.result()
-                print(f"{result['ip']} --> {result['result']}")
+                # print(f"{result['ip']} --> {result['result']}")
                 json.dump(result, logging, indent=2)
                 logging.write("\n")
                 logging.flush()
