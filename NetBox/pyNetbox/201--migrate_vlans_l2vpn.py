@@ -35,6 +35,10 @@ def get_or_create_tenant(name):
 
 tenant_id = get_or_create_tenant(TENANT_NAME)
 
+tag = nb.extras.tags.get(name="phpipam-migrated")
+tag_id = tag.id
+tag_slug = tag.slug
+
 
 def slugify(name):
     # Lowercase the name
@@ -65,10 +69,43 @@ def get_or_create_vlan_role(name):
     return nb.ipam.roles.create({"name": name, "slug": name.lower()}).id
 
 
+def get_site_id_by_name(site_name):
+    site = nb.dcim.sites.get(name=site_name)
+    if site is None:
+        print(f"Site not found {site_name}")
+        return
+    else:
+        return site.id
+
+
+def get_or_create_vlan_group(name):
+    vlan_group = nb.ipam.vlan_groups.get(name=f"{name}-VLANs")
+    if vlan_group:
+        return vlan_group.id
+    else:
+        if name == "Global":
+            payload = {
+                "name": f"{name}-VLANs",
+                "slug": slugify(name),
+                "tenant": tenant_id,
+                "description": f"VLANS in {name}",
+                "tags": [tag_id]
+            }
+        else:
+            payload = {
+                "name": f"{name}-VLANs",
+                "slug": slugify(name),
+                "scope_id": get_site_id_by_name(name),
+                "scope_type": "dcim.site",
+                "tenant": tenant_id,
+                "description": f"VLANS in {name}",
+                "tags": [tag_id]
+            }
+        return (nb.ipam.vlan_groups.create(**payload)).id
+
+
 vlan_role_id = get_or_create_vlan_role(DEFAULT_VLAN_ROLE)
 
-tag = nb.extras.tags.get(name="phpipam-migrated")
-tag_id = tag.id
 
 # Load VLANs
 with open(VLANS_FILE, "r") as f:
@@ -77,28 +114,47 @@ with open(VLANS_FILE, "r") as f:
 for vlan in vlans:
     vlan_id = vlan["number"]
     vlan_name = vlan["name"]
+    domain_id = vlan["domainId"]
+    if domain_id == 2:
+        vlan_group = "AMER-E"
+    elif domain_id == 3:
+        vlan_group = "AMER-W"
+    elif domain_id == 1:
+        vlan_group = "Global"
+    else:
+        print(f"Skipped Vlan: {vlan_name} : {vlan_id} (Unknown domain)")
+        continue
+    vlan_group_id = get_or_create_vlan_group(vlan_group)
     status = map_vlan_status(vlan.get("custom_Status", "Active"))
     l2vni = vlan.get("custom_L2VNI")
-    vlan_exists = nb.ipam.vlans.get(name=vlan_name, vid=vlan_id, tags=[tag_id])
+    vlan_exists = nb.ipam.vlans.filter(
+        name=vlan_name, vid=vlan_id, tag=tag_slug)
     if vlan_exists:
         print(f"Skipped Vlan: {vlan_name} : {vlan_id} (already exists)")
         continue
     else:
-        created_vlan = nb.ipam.vlans.create({
-            "name": vlan_name,
-            "vid": vlan_id,
-            "description": vlan.get("description", ""),
-            "status": status,
-            "tenant": tenant_id,
-            "role": vlan_role_id,
-            "tags": [tag_id]
-        })
+        try:
+            created_vlan = nb.ipam.vlans.create({
+                "name": vlan_name,
+                "vid": vlan_id,
+                "description": vlan.get("description", ""),
+                "status": status,
+                "tenant": tenant_id,
+                "role": vlan_role_id,
+                "tags": [tag_id],
+                "group": vlan_group_id
+            })
 
-        print(f"Created Vlan: {created_vlan.name} : {created_vlan.vid}")
+            print(
+                f"Created Vlan: {created_vlan.name} : {created_vlan.vid} : {created_vlan.group}")
+        except Exception as e:
+            print(
+                f"Skipped Vlan: {vlan_name} : {vlan_id} (already exists in the group: {vlan_group}-VLANs)")
+            continue
         # Create L2VPN and termination if L2VNI is present
         if l2vni:
-            l2vni_exists = nb.vpn.l2vpns.get(
-                name=vlan_name, identifier=l2vni, tags=[tag_id])
+            l2vni_exists = nb.vpn.l2vpns.filter(
+                name=vlan_name, identifier=l2vni, tag=tag_slug)
             if l2vni_exists:
                 print(
                     f"Skipped L2VPN & L2VPN termination: {l2vni} (already exists)")
@@ -110,7 +166,8 @@ for vlan in vlans:
                     "identifier": l2vni,
                     "type": "vxlan-evpn",
                     "description": f"L2VPN for {vlan_name}",
-                    "tags": [tag_id]
+                    "tags": [tag_id],
+                    "tenant": tenant_id
                 })
 
                 print(f"Created L2VPN: {l2vpn.name} : {l2vpn.identifier}")
@@ -121,7 +178,8 @@ for vlan in vlans:
                     "assigned_object_type": "ipam.vlan",
                     "assigned_object_id": created_vlan.id,
                     "name": vlan_name,
-                    "tags": [tag_id]
+                    "tags": [tag_id],
+                    "tenant": tenant_id
                 })
 
                 print(

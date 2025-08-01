@@ -28,6 +28,25 @@ def slugify(name):
     slug = re.sub(r"[^a-z0-9-_]", "", slug)
     return slug
 
+
+TENANT_NAME = "WP-Corp"
+
+# Ensure tenant exists
+
+
+def get_tenant_id(name):
+    tenant = netbox.tenancy.tenants.get(name=name)
+    if tenant:
+        return tenant.id
+    else:
+        print(f"Tenant '{name}' not found")
+
+
+tenant_id = get_tenant_id(TENANT_NAME)
+
+tag = netbox.extras.tags.get(name="phpipam-migrated")
+tag_id = tag.id
+tag_slug = tag.slug
 # Create or update site in NetBox
 
 
@@ -45,7 +64,9 @@ def sync_site(location, tag_id):
             "latitude": location.get("lat"),
             "longitude": location.get("long"),
             "tags": [tag_id],
-            "slug": slugify(name)
+            "slug": slugify(name),
+            "tenant": tenant_id,
+            "tags": [tag_id]
         }
 
         created_site = netbox.dcim.sites.create(payload)
