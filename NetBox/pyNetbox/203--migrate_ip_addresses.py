@@ -57,7 +57,13 @@ with open(SUBNETS_FILE, "r") as f:
         sid = int(subnet.get("id", "0"))
         all_subnet_ids[sid] = subnet.get("mask")
 
-valid_statuses = {"active", "deprecated", "reserved", "dhcp"}
+
+valid_status = {
+    "1": "deprecated",
+    "2": "active",
+    "3": "reserved",
+    "4": "dhcp"
+}
 autodiscovered_ip = "autodiscovered"
 
 
@@ -75,15 +81,17 @@ def create_ip(ip):
             with counter_lock:
                 ip_counters["failed"] += 1
             return {"ip": address, "result": "failure", "comment": "autodiscovered IP skipped"}
-        if ip["status"] not in valid_statuses:
-            # print(
-            #     f"Skipping: {address} has invalid status (valid status: active, reserved, deprecated & dhcp)")
+        try:
+            ip_status = valid_status[str(ip["tag"]).strip()]
+        except Exception as e:
+            print(
+                f"Skipping: {address} has invalid status (valid status: active, reserved, deprecated & dhcp)")
             with counter_lock:
                 ip_counters["failed"] += 1
             return {"ip": address, "result": "failure", "comment": "invalid status (valid status: active, reserved, deprecated & dhcp)"}
         ip_exists = nb.ipam.ip_addresses.get(address=address)
         if ip_exists:
-            # print(f"Skipping: {address} (already exists)")
+            print(f"Skipping: {address} (already exists)")
             with counter_lock:
                 ip_counters["success"] += 1
             return {"ip": address, "result": "success", "comment": "already exists"}
@@ -91,31 +99,31 @@ def create_ip(ip):
             if ip["hostname"]:
                 payload = {
                     "address": address,
-                    "status": ip["status"],
+                    "status": ip_status,
                     "tags": [tag_id],
                     "description": ip["description"],
                     "dns_name": ip["hostname"]
                 }
                 nb.ipam.ip_addresses.create(**payload)
-                # print(f"Created IP address: {address}")
+                print(f"Created IP address: {address}")
                 with counter_lock:
                     ip_counters["success"] += 1
                 return {"ip": address, "result": "success", "comment": "IP added"}
             else:
                 payload = {
                     "address": address,
-                    "status": ip["status"],
+                    "status": ip_status,
                     "tags": [tag_id],
                     "description": ip["description"]
                 }
                 nb.ipam.ip_addresses.create(**payload)
-                # print(f"Created IP address: {address}")
+                print(f"Created IP address: {address}")
                 with counter_lock:
                     ip_counters["success"] += 1
                 return {"ip": address, "result": "success", "comment": "IP added"}
     except Exception as e:
-        # print(
-        #     f"Warning: subnet ID {e} for {ip["ip"]} not found in subnets.json file")
+        print(
+            f"Warning: subnet ID {e} for {ip["ip"]} not found in subnets.json file")
         with counter_lock:
             ip_counters["failed"] += 1
         return {"ip": address, "result": "failure", "comment": f"exception occured {e}"}
@@ -136,7 +144,7 @@ with open(IP_ADDRESS_FILE, "r") as f:
                 futures.append(future_ip)
             for future in as_completed(futures):
                 result = future.result()
-                # print(f"{result['ip']} --> {result['result']}")
+                print(f"{result['ip']} --> {result['result']}")
                 json.dump(result, logging, indent=2)
                 logging.write("\n")
                 logging.flush()

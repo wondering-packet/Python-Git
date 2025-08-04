@@ -95,15 +95,15 @@ del_vlans = nb.ipam.vlans.all()
 #     if vlan.id == 15:
 #         print(f"{vlan.vid} -- {vlan.name} -- {vlan.description} -- Site: {vlan.site} -- Tenant: {vlan.tenant}")
 
-# del_ips = nb.ipam.ip_addresses.all()
+del_ips = nb.ipam.ip_addresses.all()
 
-# for ip in del_ips:
-#     if ip.tags:
-#         tag_ids = [t.id for t in ip.tags]
-#         if tag_id in tag_ids:
-#             ip.delete()
-#             print(
-#                 f"Deleted: {ip.address} -- {ip.description}")
+for ip in del_ips:
+    if ip.tags:
+        tag_ids = [t.id for t in ip.tags]
+        if tag_id in tag_ids:
+            ip.delete()
+            print(
+                f"Deleted: {ip.address} -- {ip.description}")
 
 
 # def get_site_id_by_name(site_name):
@@ -161,26 +161,26 @@ del_vlans = nb.ipam.vlans.all()
 # get_or_create_vlan_group("TEST-Site")
 
 
-tag_name = "phpipam-migrated"
+# tag_name = "phpipam-migrated"
 
-# Get the tag object using name
-tag = nb.extras.tags.get(name=tag_name)
-tag_id = tag.slug
-vlan_exists = list(nb.ipam.vlans.filter(
-    name="VLAN 2010", vid=2010, tag=tag_id))
-if vlan_exists:
-    vlan = vlan_exists[0]  # assuming unique match
-    print(vlan.description)
-    print(vlan.tags)
-else:
-    print("No VLAN found with the correct tag.")
-##################
-tag_id = tag.slug
-vlan = nb.ipam.vlans.get(
-    name="VLAN 2010", vid=2010, tag=tag_id)
-if vlan:
-    # vlan = vlan_exists[0]  # assuming unique match
-    print(vlan.description)
-    print(vlan.tags)
-else:
-    print("No VLAN found with the correct tag.")
+# # Get the tag object using name
+# tag = nb.extras.tags.get(name=tag_name)
+# tag_id = tag.slug
+# vlan_exists = list(nb.ipam.vlans.filter(
+#     name="VLAN 2010", vid=2010, tag=tag_id))
+# if vlan_exists:
+#     vlan = vlan_exists[0]  # assuming unique match
+#     print(vlan.description)
+#     print(vlan.tags)
+# else:
+#     print("No VLAN found with the correct tag.")
+# ##################
+# tag_id = tag.slug
+# vlan = nb.ipam.vlans.get(
+#     name="VLAN 2010", vid=2010, tag=tag_id)
+# if vlan:
+#     # vlan = vlan_exists[0]  # assuming unique match
+#     print(vlan.description)
+#     print(vlan.tags)
+# else:
+#     print("No VLAN found with the correct tag.")
