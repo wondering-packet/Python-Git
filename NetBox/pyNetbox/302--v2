@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+import json
+import urllib3
+import pynetbox
+from pynetbox.core.query import RequestError  # <- specific exception
+
+SECRETS_FILE = "/automation/secrets/netbox.json"
+VERIFY_SSL = False
+DRY_RUN = False
+
+SUPERNETS = [
+    "172.16.0.0/20",
+    "172.16.16.0/20",
+    "172.20.0.0/20",
+]
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+def normalize_scope_type(scope_type):
+    if not scope_type:
+        return None
+    if isinstance(scope_type, dict):
+        app = scope_type.get("app_label") or scope_type.get("app") or ""
+        model = scope_type.get("model") or ""
+        key = ".".join([p for p in (app, model) if p])
+        return key or None
+    return str(scope_type)
+
+
+def get_scope_name(nb, scope_type, scope_id):
+    if not (scope_type and scope_id):
+        return None
+    try:
+        app, model = scope_type.split(".")
+    except Exception:
+        return None
+
+    if app == "dcim" and model == "site":
+        obj = nb.dcim.sites.get(scope_id)
+    elif app == "dcim" and model == "region":
+        obj = nb.dcim.regions.get(scope_id)
+    elif app == "dcim" and model == "location":
+        obj = nb.dcim.locations.get(scope_id)
+    elif app == "tenancy" and model == "tenant":
+        obj = nb.tenancy.tenants.get(scope_id)
+    else:
+        return None
+
+    return obj.name if obj else None
+
+
+# --- WORKAROUND: robust updater that falls back to PUT on buggy servers
+def robust_set_scope(nb, child, scope_type, scope_id):
+    payload = {"scope_type": scope_type, "scope_id": scope_id}
+
+    # Try normal PATCH first
+    try:
+        child.update(payload)
+        return True, "PATCH OK"
+    except RequestError as e:
+        emsg = str(e).lower()
+        if "please select a site" in emsg or "'scope':" in emsg:
+            # Build full PUT payload (strip read-only/noise)
+            full = child.serialize()
+            for k in ["id", "url", "display", "created", "last_updated", "scope"]:
+                full.pop(k, None)
+            full.update(payload)
+
+            url = f"{nb.base_url.rstrip('/')}/api/ipam/prefixes/{child.id}/"
+            r = nb.http_session.put(url, json=full)
+            if r.status_code in (200, 204):
+                return True, "PUT OK (workaround)"
+            return False, f"PUT failed: {r.status_code} {r.text}"
+        return False, f"PATCH failed: {e}"
+    except Exception as e:
+        return False, f"PATCH exception: {e}"
+
+
+def main():
+    with open(SECRETS_FILE, "r") as f:
+        secrets = json.load(f)
+        NETBOX_URL = secrets["NETBOX_URL"].rstrip("/")
+        API_TOKEN = secrets["API_TOKEN"]
+
+    nb = pynetbox.api(NETBOX_URL, token=API_TOKEN)
+    nb.http_session.verify = VERIFY_SSL
+
+    # Optional: print server version so we know if we’re in the danger zone
+    try:
+        status = nb.http_session.get(f"{NETBOX_URL}/api/status/").json()
+        print("NetBox version:", status.get("netbox-version"))
+    except Exception:
+        pass
+
+    total_children = updated = 0
+    skipped_already_scoped = skipped_missing_supernet_scope = skipped_supernet_not_found = 0
+
+    print(f"DRY_RUN = {DRY_RUN}")
+    print("Starting scope sync from supernets → child prefixes...\n")
+
+    for cidr in SUPERNETS:
+        supernet = nb.ipam.prefixes.get(prefix=cidr)
+        if not supernet:
+            print(f"❌ Supernet not found in NetBox: {cidr}")
+            skipped_supernet_not_found += 1
+            continue
+
+        super_scope_type_raw = getattr(supernet, "scope_type", None)
+        super_scope_id = getattr(supernet, "scope_id", None)
+        super_scope_type = normalize_scope_type(super_scope_type_raw)
+
+        if not (super_scope_type and super_scope_id):
+            print(
+                f"⚠️  Supernet {cidr} has NO scope set. Skipping its children.")
+            skipped_missing_supernet_scope += 1
+            continue
+
+        super_scope_name = get_scope_name(nb, super_scope_type, super_scope_id)
+
+        print(
+            f"🔎 Supernet {cidr}: scope_type={super_scope_type} "
+            f"scope_name={super_scope_name} (id={super_scope_id})"
+        )
+
+        children = [p for p in nb.ipam.prefixes.filter(
+            within=cidr) if p.id != supernet.id]
+        print(f"  → Found {len(children)} child prefixes")
+
+        for child in children:
+            total_children += 1
+            c_scope_type_raw = getattr(child, "scope_type", None)
+            c_scope_id = getattr(child, "scope_id", None)
+            c_scope_type = normalize_scope_type(c_scope_type_raw)
+
+            if c_scope_type and c_scope_id:
+                skipped_already_scoped += 1
+                continue
+
+            if DRY_RUN:
+                print(
+                    f"   [DRY] Would set scope for {child.prefix} (ID {child.id}) "
+                    f"→ {super_scope_type}:{super_scope_name}"
+                )
+            else:
+                ok, note = robust_set_scope(
+                    nb, child, super_scope_type, super_scope_id)
+                if ok:
+                    updated += 1
+                    print(
+                        f"   ✅ Scoped {child.prefix} → {super_scope_type}:{super_scope_name} ({note})")
+                else:
+                    print(
+                        f"   ❌ Failed to update {child.prefix} (ID {child.id}): {note}")
+
+    print("\n=== Summary ===")
+    print(f"Total child prefixes considered : {total_children}")
+    print(f"Updated (newly scoped)          : {updated}")
+    print(f"Skipped (already scoped)        : {skipped_already_scoped}")
+    print(
+        f"Skipped (supernet no scope)     : {skipped_missing_supernet_scope}")
+    print(f"Supernets not found             : {skipped_supernet_not_found}")
+
+
+if __name__ == "__main__":
+    main()
