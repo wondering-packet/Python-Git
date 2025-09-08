@@ -12,7 +12,7 @@ AUTH_LDAP_CONNECTION_OPTIONS = {
 
 # NetBox service account (read-only)
 AUTH_LDAP_BIND_DN = "CN=netbox-sa,OU=WP-ServiceAccounts,DC=intra,DC=wonderingpacket,DC=com"
-AUTH_LDAP_BIND_PASSWORD = "Shiro@121"
+AUTH_LDAP_BIND_PASSWORD = "PASSWORD"
 
 # TLS / certificates
 # If you have a proper CA installed on the host, you usually don't need to set these.
