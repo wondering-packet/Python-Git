@@ -1,0 +1,31 @@
+follow in order:
+
+1. 200 - export all overlaps.
+    saved as "c:\temp\netbox\200-meraki_vlan_details_latest.csv".
+2. rename above file to 200-meraki_vlan_details_old.csv
+3. 205 - this generates "c:\temp\netbox\205-meraki_supernet_summary.csv"
+4. 206 - imports all retail stores as sites. uses excel sheet data.
+    duplicates skipped.
+5. 207 - creates prefixes for supernets based on "c:\temp\netbox\netbox_retail_stores_prefixes.csv".
+    supernet file was created based on the "c:\temp\netbox\205-meraki_supernet_summary.csv". duplicates removed.
+6. 400 - prepares for subnets import - first parse.
+    uses 2 csv files (retail_supernets & retail_vlans) derived from the excel sheet.
+    output is saved to "c:\temp\netbox\400-retail_filtered_vlans.csv"
+7. 401 - prepares for subnets import - second parse.
+    processes "c:\temp\netbox\400-retail_filtered_vlans.csv" & "c:\temp\netbox\netbox_retail_stores_prefixes.csv" to validate vlan data.
+    saved as "c:\temp\netbox\401-retail_filtered_subnets.csv" 
+8. 402 - prepares for subnets import - third parse.
+    adds correct roles to the "c:\temp\netbox\401-retail_filtered_subnets.csv" file.
+    saved as "c:\temp\netbox\402-retail_filtered_subnets_with_roles.csv"
+    NOTE: you will also have to manually rectify any "UNKNOWN" entry.
+9. 208 - imports subnets based on "c:\temp\netbox\402-retail_filtered_subnets_with_roles.csv"
+    NOTE: this script checks for previous runs. so if you want to start fresh then delete the failure csv beforehand.
+
+Some of the files have been created from the excel sheets. these are the files without script number in the name.
+sheets are based on "c:\temp\netbox\205-meraki_supernet_summary.csv" & "c:\temp\netbox\200-meraki_vlan_details_latest.csv" file.
+
+NOTE1: i have applied filters in the sheets to ensure i don't end up importing duplicate entries. if 4 duplicates are there then one is being imported.
+NOTE2: retail_supernets.csv file is based on the sheet with INVALID prefixes manually fixed.
+NOTE3: retail_vlans.csv file is also created based on the sheet. all duplicates have been manually removed.
+
+Note: 205 outputs the supernets & subnets which are problematic. you should ideally fix those.
