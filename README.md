@@ -1,3 +1,3 @@
-Python codes for network engineers.
+Python code for network engineers.
 
 Author: Vipin Garg.
