@@ -1,0 +1,24 @@
+migration steps:
+1. run backup-scripts
+2. run migration-scripts
+3. cutover
+
+manul fixes/work:
+1. fix dhcp range import failures due to overlaps.
+2. remove /8 & /16 rfc1918 supernets.
+
+Run the scripts in this order ONLY:
+
+backup-scripts:
+1. All the backup scripts (any order) - 200,201,202
+
+migration-scripts:
+1. run Get_dhcp_scopes.ps1 DONE
+2. run Get_dhcp_reservations.ps1 DONE
+3. 200 - import locations NOT REQUIRED
+4. 201 - import vlans & l2vpns DONE
+5. 202 - import subnets DONE
+6. 401 - import dhcp ips (exprted in #2) DONE
+7. 203 - import ip addresses DONE
+8. 302 - fix missing site associations for prefixes
+9. 400 - import dhcp ranges
