@@ -1,0 +1,53 @@
+{
+  "enterprise_network": "DawgieGlobal_Enterprises",
+  "inventory_version": "1.4.2",
+  "meraki": [
+    {
+      "ip": "52.14.210.88",
+      "infrastructure_type": "Cloud",
+      "provider": "AWS",
+      "region": "us-east-2",
+      "environment": "Production",
+      "purpose": "Public Facing Load Balancer",
+      "caption": "AWS-ELB-001"
+    },
+    {
+      "ip": "20.112.45.10",
+      "infrastructure_type": "Cloud",
+      "provider": "Azure",
+      "region": "westeurope",
+      "environment": "Staging",
+      "purpose": "VPN Gateway - Site-to-Site",
+      "caption": "AZ-VPN-EU-02"
+    }
+  ],
+  "aruba": [
+    {
+      "ip": "198.51.100.42",
+      "infrastructure_type": "Datacenter",
+      "provider": "Equinix-Colocation",
+      "region": "Chicago-CH3",
+      "environment": "Production",
+      "purpose": "Primary Edge Firewall (Cisco ASA)",
+      "caption": "DC-FW-01-PRI"
+    },
+    {
+      "ip": "203.0.113.5",
+      "infrastructure_type": "Hybrid",
+      "provider": "On-Prem / AWS Direct Connect",
+      "region": "us-west-1",
+      "environment": "Production",
+      "purpose": "Direct Connect Egress Router",
+      "caption": "HYB-DX-001"
+    },
+    {
+      "ip": "35.200.12.99",
+      "infrastructure_type": "Cloud",
+      "provider": "Google Cloud",
+      "region": "asia-northeast1",
+      "environment": "Development",
+      "purpose": "NAT Gateway",
+      "caption": "GCP-NAT-DEV"
+    }
+  ]
+}
