@@ -1,0 +1,22 @@
+[
+    {
+        "address": "52.14.210.87/32",
+        "action": "IP created",
+        "message": "52.14.210.87/32 -- NEW -- created in NetBox."
+    },
+    {
+        "address": "20.112.45.13/32",
+        "action": "IP created",
+        "message": "20.112.45.13/32 -- NEW -- created in NetBox."
+    },
+    {
+        "address": "20.112.45.11/32",
+        "action": "IP created",
+        "message": "20.112.45.11/32 -- NEW -- created in NetBox."
+    },
+    {
+        "address": "35.200.12.99/32",
+        "action": "IP created",
+        "message": "35.200.12.99/32 -- NEW -- created in NetBox."
+    }
+]

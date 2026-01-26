@@ -1,0 +1,12 @@
+[
+    {
+        "address": "198.51.100.42/32",
+        "action": "last seen updated",
+        "message": "198.51.100.42/32 -- External SoT GitHub -- last seen updated."
+    },
+    {
+        "address": "203.0.113.5/32",
+        "action": "last seen updated",
+        "message": "203.0.113.5/32 -- External SoT GitHub -- last seen updated."
+    }
+]

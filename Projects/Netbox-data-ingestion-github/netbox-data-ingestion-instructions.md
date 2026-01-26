@@ -87,13 +87,18 @@ A new working dictionary is built from **Dataset A**, containing only fields rel
 
 #### Property Mapping
 
-| Dataset A                    | Dataset B               |
-| ---------------------------- | ----------------------- |
-| `ip`                         | `address`               |
-| `caption`                    | `description`           |
-| platform (`aruba`, `meraki`) | NetBox tag (`platform`) |
+| Dataset A                    | Dataset B     |
+| ---------------------------- | ------------- |
+| `ip`                         | `address`     |
+| `caption`                    | `description` |
+| platform (`aruba`, `meraki`) | NetBox tag    |
+| raw data                     | `comment`     |
+
+> We are punting raw data for the IP from A as a comment for audit and troubleshooting purposes.
 
 #### Additional NetBox Metadata
+
+Create these in NetBox before the workflow goes live.
 
 - **Tags**
   - `External SoT GitHub`
@@ -108,24 +113,28 @@ A new working dictionary is built from **Dataset A**, containing only fields rel
 #### Case 1: Exists in A but not in B
 - Create IP in NetBox
   - Tag: `External SoT GitHub`
+  - Tag: `Aruba` or `Meraki` or whatever the platform is
   - Set `last_seen`
+  - Punt raw data for the IP from A as a comment.
 
 #### Case 2: Exists in both A and B
 - Update IP details
   - If `External SoT GitHub` exists → update `last_seen`
+  - If `manual` tag exists → skip
   - Else → tag `Review-Required` and update `last_seen`
 
 #### Case 3: Exists in B but not in A
 - If `External SoT GitHub` exists → set status `deprecated`
-- If `Manual` exists → skip
-- Else → tag `Review-Required`
 - Do **not** update `last_seen`
 
 ---
 
-### Manual Review Policy
+### Review Required tag
 
-IPs tagged `Review-Required` must be manually validated and tagged `Manual` if appropriate.  
+IPs tagged `Review-Required` are conflicting WAN IPs that have been either added manually or imported from somewhere else (not ingested from Dataset A), so must be manually validated.
+
+To stop these WAN IPs from being marked as `Review-Required` in future runs, remove `Review-Required` tag and add `manual` tag. WAN IPs tagged `manual` are treated as exceptions.
+
 Goal: **single external Source of Truth for WAN IP ingestion**.
 
 ---
@@ -142,3 +151,7 @@ Removes stale WAN IPs from NetBox.
 2. Validate `last_seen`
 3. If `last_seen` > 90 days → delete IP
 4. Otherwise retain as `deprecated`
+
+## Script 3: `netbox_ping.py`
+
+Does basic reachability test to NetBox & GitHub.

@@ -1,0 +1,12 @@
+[
+    {
+        "address": "20.112.45.12/32",
+        "action": "IP status set to 'deprecated'",
+        "message": "IP no longer seen in JSON. Status set to deprecated | IP: 20.112.45.12/32"
+    },
+    {
+        "address": "52.14.210.88/32",
+        "action": "IP status set to 'deprecated'",
+        "message": "IP no longer seen in JSON. Status set to deprecated | IP: 52.14.210.88/32"
+    }
+]
